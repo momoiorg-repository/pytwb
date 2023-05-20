@@ -1,4 +1,5 @@
 FROM ros:humble
+SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
  git libqt5svg5-dev python3-pip python3-opencv python3-tk \
@@ -12,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /root
 RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
 
-COPY pybt /tmp
+COPY . /tmp/pybt
 WORKDIR /tmp/pybt
-RUN pip3 install -e .
+RUN source /opt/ros/humble/setup.bash && pip3 install -e .
+WORKDIR /root
+RUN rm -rf /tmp/pybt

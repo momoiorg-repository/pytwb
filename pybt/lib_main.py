@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import inspect
 import ast
@@ -198,3 +199,19 @@ def do_command():
             print(f'error: {e}')
             traceback.print_exc()
 
+def cli():
+    create = None
+    if len(sys.argv) > 1:
+        arg0 = sys.argv[1]
+        print(arg0)
+        if arg0 == '-c':
+            create = sys.argv[2]
+        else:
+            work_dir = sys.argv[1]
+    else:
+        work_dir = os.getcwd()
+    if not create:
+        initialize(work_dir)
+        do_command()
+    else:
+        create_project(create)

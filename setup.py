@@ -34,7 +34,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pybt = pybt.main:run',
+            'pybt = pybt.lib_main:cli',
         ],
     },
 )
