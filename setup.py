@@ -5,6 +5,7 @@ install_requires = ["setuptools", "pydot"]
 setup(
     name='pybt',
     version='0.0.1',
+    packages=['pybt', 'pybt.built_in_command', 'pybt.built_in_bt'],
     author='Kazuya Tago',
     maintainer='Kazuya Tago <ktago.gm@gmail.com>',
     url='',
