@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 install_requires = ["setuptools", "pydot"]
 
 setup(
-    name='pybt',
+    name='pytwb',
     version='0.0.1',
-    packages=['pybt', 'pybt.built_in_command', 'pybt.built_in_bt'],
+    packages=['pytwb', 'pytwb.built_in_command', 'pytwb.built_in_bt'],
     author='Kazuya Tago',
     maintainer='Kazuya Tago <ktago.gm@gmail.com>',
     url='',
@@ -27,14 +27,14 @@ setup(
         "behaviour trees framework."
     ),
     license='BSD',
-    package=find_packages(exclude=['pybt_test*']),
+    package=find_packages(exclude=['pytwb_test*']),
     install_requires=[
         'py_trees',
         'py_trees_ros',
     ],
     entry_points={
         'console_scripts': [
-            'pybt = pybt.lib_main:cli',
+            'pytwb = pytwb.lib_main:cli',
         ],
     },
 )

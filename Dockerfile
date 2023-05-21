@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /root
 RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
 
-COPY . /tmp/pybt
-WORKDIR /tmp/pybt
+COPY . /usr/local/lib/pytwb
+WORKDIR /usr/local/lib/pytwb
 RUN source /opt/ros/humble/setup.bash && pip3 install -e .
 WORKDIR /root
-RUN rm -rf /tmp/pybt
