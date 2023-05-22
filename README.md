@@ -8,12 +8,12 @@ pytwb is a normal Python application and can be installed locally, but it is rec
 ### Installation
 First, do a docker build in your local environment. Get the git repository as a first step.
 
-$ git clone https://github.com/momoiorg-repository/pytwb.git
+\$ git clone https://github.com/momoiorg-repository/pytwb.git
 
 Then run docker build.
 
-$ cd pytwb  
-$ docker image build -t pytwb:latest
+\$ cd pytwb  
+\$ docker image build -t pytwb:latest \.
 
 creates a docker image.
 
@@ -24,9 +24,10 @@ $ mkdir -p \<workspace name\>/src
 
 For the rest of the work, start docker instead of the local environment and proceed within it.
 
-$ docker run –name <docker name> -v \`pwd\`/\<workspace name\>:/root/\<workspace name\>:rw -it pytwb
+$ docker run -–name <docker name> -v \`pwd\`/\<workspace name\>:/root/\<workspace name\>:rw -it pytwb
 
-Then from VSCode, attach to this docker. Set the working directory to /root/<workspace name>.
+Then from VSCode, attach to this docker. Set the working directory to  
+/root/\<workspace name\>  
 Next, launch pytwb to create a ROS package. Open Terminal of VSCode, and
 
 \# pytwb -c \<package name\>
@@ -35,19 +36,22 @@ will do. The package is now created.
 
 ### Coding and running
 Use pytwb to run your code.
-First, create the behavior code in Python in
- \<package name\>/\<package name\>/behavior
-under the current directory, and create the XML code of the behavior tree in
+First, create the behavior code in Python in  
+ \<package name\>/\<package name\>/behavior  
+under the current directory, and create the XML code of the behavior tree in  
 \<package name\>/\<package name\>/trees.
 
-　Next, when you execute
-\<package name\>/\<package name\>/dbg_main.py
+　Next, when you execute  
+\<package name\>/\<package name\>/dbg_main.py  
 from VSCode, the prompt '>' will be displayed. Therefore,
 
 \> run \<behavior tree name\>
 
 will do. \<behavior tree name\> is the file name of the XML behavior tree you created under the 'trees' directory, or it without the '.XML'.
 　The behavior tree you created will now start running as a ROS application. After that, please debug using VSCode in the same way as usual.
-Finally, the package is completed by building a ROS package with
-\<package name\>/\<package name\>/main.py
+Finally, the package is completed by building a ROS package with  
+\<package name\>/\<package name\>/main.py  
 as the main.
+
+## Sample code
+being prepared.
