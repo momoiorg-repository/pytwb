@@ -7,16 +7,14 @@ pytwb is a normal Python application and can be installed locally, but it is rec
 
 ### Installation
 First, do a docker build in your local environment. Get the git repository as a first step.
-
 ```
-\$ git clone https://github.com/momoiorg-repository/pytwb.git
+$ git clone https://github.com/momoiorg-repository/pytwb.git
 ```
-
 Then run docker build.
-
+```
 \$ cd pytwb  
 \$ docker image build -t pytwb:latest \.
-
+```
 creates a docker image.
 
 ### Create a ROS package using pytwb
