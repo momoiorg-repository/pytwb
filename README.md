@@ -27,7 +27,7 @@ For the rest of the work, start docker instead of the local environment and proc
 docker run -–name <docker name> -v `pwd`/<workspace name>:/root/<workspace name>:rw -it pytwb
 ```
 Then from VSCode, attach to this docker. Set the working directory to  
-/root/<workspace name>  
+/root/\<workspace name\>  
 Next, launch pytwb to create a ROS package. Open Terminal of VSCode, and
 ```
 pytwb -c <package name>
