@@ -8,30 +8,30 @@ pytwb is a normal Python application and can be installed locally, but it is rec
 ### Installation
 First, do a docker build in your local environment. Get the git repository as a first step.
 ```
-$ git clone https://github.com/momoiorg-repository/pytwb.git
+git clone https://github.com/momoiorg-repository/pytwb.git
 ```
 Then run docker build.
 ```
-$ cd pytwb  
-$ docker image build -t pytwb:latest \.
+cd pytwb  
+docker image build -t pytwb:latest \.
 ```
 creates a docker image.
 
 ### Create a ROS package using pytwb
 First, in your local environment, create a workspace as usual.
-
-$ mkdir -p \<workspace name\>/src
-
+```
+mkdir -p \<workspace name\>/src
+```
 For the rest of the work, start docker instead of the local environment and proceed within it.
-
-$ docker run -–name <docker name> -v \`pwd\`/\<workspace name\>:/root/\<workspace name\>:rw -it pytwb
-
+```
+docker run -–name <docker name> -v \`pwd\`/\<workspace name\>:/root/\<workspace name\>:rw -it pytwb
+```
 Then from VSCode, attach to this docker. Set the working directory to  
 /root/\<workspace name\>  
 Next, launch pytwb to create a ROS package. Open Terminal of VSCode, and
-
-\# pytwb -c \<package name\>
-
+```
+pytwb -c \<package name\>
+```
 will do. The package is now created.
 
 ### Coding and running
