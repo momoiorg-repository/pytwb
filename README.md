@@ -12,8 +12,8 @@ $ git clone https://github.com/momoiorg-repository/pytwb.git
 ```
 Then run docker build.
 ```
-\$ cd pytwb  
-\$ docker image build -t pytwb:latest \.
+$ cd pytwb  
+$ docker image build -t pytwb:latest \.
 ```
 creates a docker image.
 
