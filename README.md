@@ -3,7 +3,7 @@ pytwb is assumed to be used with VSCode under docker environment. It generates a
 
 ## Getting Started
 ### Prerequirement
-pytwb is a normal Python application and can be installed locally, but it is recommended to use docker to build the ROS application and create an execution environment. Development is done by first generating a docker and attaching VSCode to that docker. Therefore, the docker environment and VSCode must be available in the Ubuntu22 environment. It's standard to do it in WSL. VSCode must have a plugin installed for docker.
+pytwb is a normal Python application and can be installed locally, but it is recommended to use docker to build the ROS application and create an execution environment by using pytwb. Development is done by first generating a docker and attaching VSCode to that docker. Therefore, the docker environment and VSCode must be available in the Ubuntu22 environment. It's standard to do it in WSL. VSCode must have a plugin installed for docker.
 
 ### Installation
 First, do a docker build in your local environment. Get the git repository as a first step.
