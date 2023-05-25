@@ -1,4 +1,4 @@
-# pytwb: A workbench for creating ROS applications based on py_trees and py_trees_ros frameworks
+# pytwb: A workbench for creating ROS applications based on py_trees and py_trees_ros frameworks (beta).
 pytwb is assumed to be used with VSCode under docker environment. It generates and runs ROS packages on a command line basis. Although based on py_trees, it is possible to define behavior trees using XML, because pytwb is equipped with XML parser.  With writing XML and Python codes by VsCode, it becomes possible to collectively execute them interactively as a ROS application.
 
 ## Getting Started
