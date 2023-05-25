@@ -27,7 +27,6 @@ setup(
         "behaviour trees framework."
     ),
     license='BSD',
-    package=find_packages(exclude=['pytwb_test*']),
     install_requires=[
         'py_trees',
         'py_trees_ros',

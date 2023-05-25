@@ -109,16 +109,16 @@ class BTFactoryAPI:
         os.mkdir(os.path.join(work_dir, 'trees'))
 
         dbg_main = \
-            'from pybt.lib_main import initialize, do_command\n' + \
-            f'initialize(./{name}/{name})\n' + \
+            'from pytwb.lib_main import initialize, do_command\n' + \
+            f"'initialize(./{name}/{name})\n'" + \
             'do_command()\n'
         dbg_file = os.path.join(work_dir, 'dbg_main.py')
         with open(dbg_file,'w') as f:
             f.write(dbg_main)
 
         main = \
-            'from pybt.lib_main import initialize, do_command\n' + \
-            f'initialize(./{name}/{name})\n' + \
+            'from pytwb.lib_main import initialize, run\n' + \
+            f"'initialize(./{name}/{name})\n'" + \
             '#run(XML file name)\n'
         main_file = os.path.join(work_dir, 'main.py')
         with open(main_file,'w') as f:
