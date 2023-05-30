@@ -154,7 +154,7 @@ class CommandInterpreter:
                 print('arg count: ' + c_obj.help)
                 return
             c_obj.invoke(bt_factory_api, args)
-        else: # import from work dir
+        else: # import from base dir
             fn = self.env.get_path(name)
             if fn:
                 loader = importlib.machinery.SourceFileLoader( name, fn )
@@ -173,7 +173,7 @@ def initialize(work_dir=None):
         sys.path.append(work_dir)
     bt_factory_api = BTFactoryAPI(work_dir)
 
-def create_project(name):
+def create_package(name):
     global bt_factory_api
     bt_factory_api = BTFactoryAPI()
     bt_factory_api.create(name)
@@ -215,4 +215,4 @@ def cli():
         initialize(work_dir)
         do_command()
     else:
-        create_project(create)
+        create_package(create)

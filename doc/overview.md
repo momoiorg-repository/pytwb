@@ -11,7 +11,8 @@ Create a package with pytwb -c <package name>. Inside the pytwb, the ros2 pkg co
 In pytwb, the base directory is set as a reference during work, in addition to the current directory (base directory). In this example, the initialization code will set it to ./src/\<package name\>/\<package name\>. Names of referenced files below are relative to this base directory.  Also, at runtime, the base directory location is added to Python's classpath.
 
 In this state, create behavior code written in Python under "behavior" directory. The file name body is arbitrary and the extension should be ".py". Also, create behavior tree code written in XML under "trees" directory. The file extension of the behavior tree must be ".xml", but the file name body is arbitrary. The local file name without .xml is referred to as the name when specifying the behavior tree to be executed, so it is desirable to use a name that is easy to refer to.
-Under the base directory, you can also create other directories to place the necessary files.
+
+Under the base directory, you can also create other directories and place the necessary files. When creating a Python module, the Python classpath includes the base directory at runtime, so the module name can be based on this as well.
 
 When the entire code is written, start debugging. Run dbg_main.py from VSCode to get the whole thing working. At this time, if it is executed in debug mode, it is possible to execute the entire application in debug mode.
 
@@ -66,3 +67,24 @@ class Commander(py_trees.behaviour.Behaviour):
 ```
 
 The description method of the class body is the same as the policy required by py_trees and py_trees_ros so far.
+
+## Usage from API
+pytwb can be installed in the same way as a normal Python library and its API can be used. As an API,
+- initialize,
+- run,
+- create_package,
+- do_command,
+
+etc. An example of its use can be seen in the automatically generated main.py.
+
+```
+from pytwb.lib_main import initialize, run
+initialize('./pytwb_demo/pytwb_demo')
+run(<behavior tree name>)
+```
+
+This starts execution of \<behavior tree name\>. In that case, you need to call initialize first. The argument in that case is the location of the base directory.
+
+When you need to create a new ROS package from program, call create_package with the package name as the argument.
+
+Calling do_command displays a prompt and transitions to command mode.
