@@ -2,7 +2,7 @@ FROM ros:humble
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
- git libqt5svg5-dev python3-pip python3-opencv python3-tk \
+ git libqt5svg5-dev python3-pip python3-opencv libopencv-contrib-dev python3-tk \
  vim xterm less
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
