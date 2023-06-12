@@ -14,58 +14,17 @@ class NodeType(Enum):
     EXECUTION = 2
     DECORATOR = 3
 
-control_node = [
-    BehaviorTree,
-    Selector,
-    Sequence,
-    Parallel,
-    Selector
-]
-
 from py_trees_ros.action_clients import FromBlackboard, FromConstant
 from py_trees_ros.publishers import FromBlackboard as PublishBlackboard
 from py_trees_ros.subscribers import CheckData, WaitForData, ToBlackboard, EventToBlackboard
 from py_trees_ros.transforms import FromBlackboard as TransformBlackboard
 from py_trees_ros.transforms import ToBlackboard as TransformToBlackboard
 
-execution_node = [
-    FromBlackboard,
-    FromConstant,
-    PublishBlackboard,
-    CheckData,
-    WaitForData,
-    ToBlackboard,
-    EventToBlackboard,
-    TransformBlackboard,
-    TransformToBlackboard
-]
-
 from py_trees.decorators import OneShot, Condition, Count, EternalGuard
 from py_trees.decorators import FailureIsRunning, FailureIsSuccess
 from py_trees.decorators import Inverter, Repeat, Retry, RunningIsFailure
 from py_trees.decorators import RunningIsSuccess, StatusToBlackboard
 from py_trees.decorators import SuccessIsFailure, SuccessIsRunning, Timeout
-
-decorator_node = [
-    root,
-    OneShot,
-    Condition,
-    Count,
-    EternalGuard,
-    FailureIsRunning,
-    FailureIsSuccess,
-    SuccessIsFailure,
-    Inverter,
-    KeepRunningUntilFailure,
-    Repeat,
-    Retry,
-    RunningIsFailure,
-    RunningIsSuccess,
-    StatusToBlackboard,
-    SuccessIsFailure,
-    SuccessIsRunning,
-    Timeout
-]
 
 @dataclass
 class BuiltinBehavior:
@@ -86,7 +45,7 @@ builtin_behaviors = [
     BuiltinBehavior("WaitForData",WaitForData,NodeType.EXECUTION,{}),
     BuiltinBehavior("ToBlackboard",ToBlackboard,NodeType.EXECUTION,{}),
     BuiltinBehavior("EventToBlackboard",EventToBlackboard,NodeType.EXECUTION,{}),
-    BuiltinBehavior("TransformBlackBoard",NodeType.EXECUTION,NodeType.EXECUTION,TransformBlackboard,{}),
+    BuiltinBehavior("TransformBlackBoard",TransformBlackboard,NodeType.EXECUTION,{}),
     BuiltinBehavior("TransformToBlackboard",TransformToBlackboard,NodeType.EXECUTION,{}),
     BuiltinBehavior("root",root,NodeType.CONTROL,{}),
     BuiltinBehavior("OneShot",OneShot,NodeType.DECORATOR,{}),
@@ -107,4 +66,3 @@ builtin_behaviors = [
     BuiltinBehavior("SuccessIsRunning",SuccessIsRunning,NodeType.DECORATOR,{}),
     BuiltinBehavior("Timeout",Timeout,NodeType.DECORATOR,{})
 ]
-
