@@ -6,9 +6,7 @@ from py_trees.common import OneShotPolicy
 class root(py_trees.decorators.OneShot):
     def __init__(self, child):
         super().__init__("OneShot", child, OneShotPolicy.ON_COMPLETION)
-    
-
-    
+     
     def update(self):
         if self.status == py_trees.common.Status.SUCCESS:
             print('mission complete')

@@ -30,6 +30,8 @@ class ParseNode:
             elif an == 'node': rarg['node'] = ros_node
             else:
                 value = self.element.attrib.get(an)
+                if not value and hasattr(bnode,'default_args'):
+                    value = bnode.default_args.get(an)
                 if value: rarg[an] = self.eval_arg(value, bt_loader)
         bnode_body = bnode_cls(**rarg)
 #        if hasattr(bnode_body, 'add_children'):
