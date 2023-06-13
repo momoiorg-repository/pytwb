@@ -6,6 +6,7 @@ import ast
 import importlib
 import subprocess
 import traceback
+import yaml
 
 import rclpy
 import py_trees_ros
@@ -13,26 +14,59 @@ import py_trees_ros
 from .py_tree_loader import TreeLoader
 from . import built_in_command
 
-class Env:
-    def __init__(self, work_dir=None) -> None:
-        if work_dir:
-            self.work_dir = work_dir
+#
+## Config: unique to each docker
+#
+class Config:
+    def __init__(self) -> None:
+        dir = os.path.expanduser('~/.pytwb')
+        self.dir = dir
+        if os.path.isfile(dir):
+            with open(dir) as f:
+                config = yaml.safe_load(f)
         else:
-            self.work_dir = os.getcwd()
+            config = {
+                "work_directory" : None,
+                "pip3" : [],
+                "apt" : []
+            }
+            with open(dir, 'w') as f:
+                yaml.dump(config, f)
+        self.config = config
+    
+    def get(self, key):
+        return self.config.get(key)
+
+    def set(self, key, value):
+        if key == 'work_directory':
+            self.config['work_directory'] = value
+        if key == 'pip3' or key == 'apt':
+            if key in self.config[key]: return
+            self.config[key].append(value)
+        with open(self.dir, 'w') as f:
+            yaml.dump(self.config, f)                
+    
+#
+## Env: allocated to each ROS package
+#
+class Env:
+    def __init__(self, work_dir) -> None:
+        self.tree_table = {}
+        self.behavior_module_table = {}
         self.tree = []
+        self.behavior = []
+        self.path = []
+        self.work_dir = work_dir
+        if not work_dir: return
         tree_dir = os.path.join(self.work_dir, 'trees')
         if os.path.isdir(tree_dir):
             self.tree.append(tree_dir)
-        self.behavior = []
         behavior_dir = os.path.join(self.work_dir, 'behavior')
         if os.path.isdir(behavior_dir):
             self.behavior.append(behavior_dir)
-        self.path = []
         path_dir = os.path.join(self.work_dir, 'command')
         if os.path.isdir(path_dir):
             self.path.append(path_dir)
-        self.tree_table = {}
-        self.behavior_module_table = {}
   
     def get_path(self, name):
         name += '.py'
@@ -69,9 +103,7 @@ class Env:
         return ret
 
 class BTFactoryAPI:
-    def __init__(self, work_dir=None) -> None:
-        if not work_dir:
-            work_dir = os.getcwd()
+    def __init__(self, work_dir) -> None:
         self.env = Env(work_dir)
     
     def run(self, src, node_name='behavior_tree', period=1):
@@ -92,25 +124,27 @@ class BTFactoryAPI:
             rclpy.shutdown()
             raise e
         rclpy.shutdown()
-
     
     def shutdown(self):
         rclpy.shutdown()
     
     def change_directory(self, work_dir):
+        global config
         sys.path.append(work_dir)
         self.env = Env(work_dir)
+        config.set('work_directory', work_dir)
     
     def create(self, name):
         subprocess.run(f'ros2 pkg create --build-type ament_python {name}',
                        shell=True)
+        base_dir = os.path.join(os.getcwd(), f'{name}/{name}')
         work_dir = os.path.join(os.getcwd(), f'{name}/{name}')
         os.mkdir(os.path.join(work_dir, 'behavior'))
         os.mkdir(os.path.join(work_dir, 'trees'))
 
         dbg_main = \
             'from pytwb.lib_main import initialize, do_command\n' + \
-            f"'initialize(./{name}/{name})\n'" + \
+            f"'initialize(__file__[:-12])\n'" + \
             'do_command()\n'
         dbg_file = os.path.join(work_dir, 'dbg_main.py')
         with open(dbg_file,'w') as f:
@@ -118,11 +152,21 @@ class BTFactoryAPI:
 
         main = \
             'from pytwb.lib_main import initialize, run\n' + \
-            f"'initialize(./{name}/{name})\n'" + \
+            f"'initialize(__file__[:-12])\n'" + \
             '#run(XML file name)\n'
         main_file = os.path.join(work_dir, 'main.py')
         with open(main_file,'w') as f:
             f.write(main)
+        
+        self.change_directory(base_dir)
+    
+    def get_config(self, key):
+        global config
+        return config.get(key)
+    
+    def set_config(self, key, value):
+        global config
+        config.set(key, value)
 
 class CommandInterpreter:
     def __init__(self) -> None:
@@ -147,6 +191,17 @@ class CommandInterpreter:
 
     def exec_command(self, name, args):
         global bt_factory_api
+        if name == help or name == '?':
+            for c in self.commands.values():
+                print(f'{c.name}: {c.help}')
+            return
+        if name.startswith('!'):
+            if name != '!':
+                com = [name[1:]] + args
+            else:
+                com = args
+            subprocess.run(com)
+            return
         c_obj = self.commands.get(name)
         if c_obj: # execute built in command
             an = c_obj.num_arg
@@ -167,10 +222,15 @@ class CommandInterpreter:
                     return
             print('command not found')
 
+# entry point for application program
 def initialize(work_dir=None):
-    global bt_factory_api
+    global bt_factory_api, config
+    config = Config()
     if work_dir:
         sys.path.append(work_dir)
+        config.set('work_directory', work_dir)
+    else:
+        work_dir = config.get('work_directory')
     bt_factory_api = BTFactoryAPI(work_dir)
 
 def create_package(name):
@@ -200,8 +260,10 @@ def do_command():
             print(f'error: {e}')
             traceback.print_exc()
 
+# entry point for command line interface
 def cli():
     create = None
+    work_dir = None
     if len(sys.argv) > 1:
         arg0 = sys.argv[1]
         print(arg0)
@@ -209,8 +271,6 @@ def cli():
             create = sys.argv[2]
         else:
             work_dir = sys.argv[1]
-    else:
-        work_dir = os.getcwd()
     if not create:
         initialize(work_dir)
         do_command()
