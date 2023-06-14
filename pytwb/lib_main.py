@@ -7,12 +7,16 @@ import importlib
 import subprocess
 import traceback
 import yaml
+from dataclasses import dataclass
 
 import rclpy
 import py_trees_ros
 
 from .py_tree_loader import TreeLoader
 from . import built_in_command
+
+# global variable
+config = Config()
 
 #
 ## Config: unique to each docker
@@ -26,9 +30,10 @@ class Config:
                 config = yaml.safe_load(f)
         else:
             config = {
-                "work_directory" : None,
+                "current" : None,
                 "pip3" : [],
-                "apt" : []
+                "apt" : [],
+                "packages": {}
             }
             with open(dir, 'w') as f:
                 yaml.dump(config, f)
@@ -38,33 +43,60 @@ class Config:
         return self.config.get(key)
 
     def set(self, key, value):
-        if key == 'work_directory':
-            self.config['work_directory'] = value
+        if key == 'current':
+            self.config['current'] = value
         if key == 'pip3' or key == 'apt':
             if key in self.config[key]: return
             self.config[key].append(value)
         with open(self.dir, 'w') as f:
-            yaml.dump(self.config, f)                
+            yaml.dump(self.config, f)
+
+    def set_current(self, package):
+        self.set('current', package)  
+
+    def add_package(self, package):
+        self.packages[(package.ws, package.name)] = package
+    
+    def get_package(self, ws, name):
+        return self.packages.get((ws, name))
+
+@dataclass
+class Package:
+    ws: str
+    name: str
+    path: str
+
+    def __str__(self) -> str:
+        return f'name: {self.name}\n' + \
+        f'work space: {self.ws}\n' + \
+        f'Python class path: {self.base_dir}'
+    
+    @classmethod
+    def get(cls, ws, name):
+        path = os.path.join(ws, f'src/{name}/{name}')
+        return Package(ws, name, path)
+
     
 #
 ## Env: allocated to each ROS package
 #
 class Env:
-    def __init__(self, work_dir) -> None:
+    def __init__(self, package) -> None:
         self.tree_table = {}
         self.behavior_module_table = {}
         self.tree = []
         self.behavior = []
         self.path = []
-        self.work_dir = work_dir
-        if not work_dir: return
-        tree_dir = os.path.join(self.work_dir, 'trees')
+        self.package = package
+        if not package: return
+        work_dir = package.path
+        tree_dir = os.path.join(work_dir, 'trees')
         if os.path.isdir(tree_dir):
             self.tree.append(tree_dir)
-        behavior_dir = os.path.join(self.work_dir, 'behavior')
+        behavior_dir = os.path.join(work_dir, 'behavior')
         if os.path.isdir(behavior_dir):
             self.behavior.append(behavior_dir)
-        path_dir = os.path.join(self.work_dir, 'command')
+        path_dir = os.path.join(work_dir, 'command')
         if os.path.isdir(path_dir):
             self.path.append(path_dir)
   
@@ -96,14 +128,13 @@ class Env:
     def get_behavior_module_list(self):
         ret = []
         for t in self.behavior:
-#            ret.extend(glob.glob(os.path.join(t, '[^_]*.py')))
             for f in glob.glob(os.path.join(t, '*.py')):
                 if f.startswith('_'): continue
                 ret.append(f)
         return ret
 
 class BTFactoryAPI:
-    def __init__(self, work_dir) -> None:
+    def __init__(self, work_dir=None) -> None:
         self.env = Env(work_dir)
     
     def run(self, src, node_name='behavior_tree', period=1):
@@ -128,23 +159,33 @@ class BTFactoryAPI:
     def shutdown(self):
         rclpy.shutdown()
     
-    def change_directory(self, work_dir):
+    def set_current_package(self, ws, name):
         global config
-        sys.path.append(work_dir)
-        self.env = Env(work_dir)
-        config.set('work_directory', work_dir)
+        package = Package.get(ws, name)
+        sys.path.append(package.path)
+        self.env = Env(package)
+        config.add_package(package)
+        config.set_current(package)
+        print(f'current package:\n{package}')
+        return package
     
-    def create(self, name):
-        subprocess.run(f'ros2 pkg create --build-type ament_python {name}',
+    # create package
+    def create(self, ws, name):
+        # run ros2 pkg create
+        dir = os.path.join(ws, 'src')
+        subprocess.run(f'cd {dir};ros2 pkg create --build-type ament_python {name}',
                        shell=True)
-        base_dir = os.path.join(os.getcwd(), f'{name}/{name}')
-        work_dir = os.path.join(os.getcwd(), f'{name}/{name}')
+        
+        # create directories
+        package = self.set_current_package(ws, name)
+        work_dir = package.path
         os.mkdir(os.path.join(work_dir, 'behavior'))
         os.mkdir(os.path.join(work_dir, 'trees'))
 
+        # create main routines
         dbg_main = \
             'from pytwb.lib_main import initialize, do_command\n' + \
-            f"'initialize(__file__[:-12])\n'" + \
+            f'initialize({ws}, {name})\n' + \
             'do_command()\n'
         dbg_file = os.path.join(work_dir, 'dbg_main.py')
         with open(dbg_file,'w') as f:
@@ -152,13 +193,11 @@ class BTFactoryAPI:
 
         main = \
             'from pytwb.lib_main import initialize, run\n' + \
-            f"'initialize(__file__[:-12])\n'" + \
+            f'initialize({ws}, {name})\n' + \
             '#run(XML file name)\n'
         main_file = os.path.join(work_dir, 'main.py')
         with open(main_file,'w') as f:
-            f.write(main)
-        
-        self.change_directory(base_dir)
+            f.write(main)  
     
     def get_config(self, key):
         global config
@@ -223,20 +262,24 @@ class CommandInterpreter:
             print('command not found')
 
 # entry point for application program
-def initialize(work_dir=None):
+def initialize(ws=None, name=None):
     global bt_factory_api, config
-    config = Config()
-    if work_dir:
-        sys.path.append(work_dir)
-        config.set('work_directory', work_dir)
+    package = None
+    if ws:
+        package = config.get_package((ws, name))
+        if not package:
+            package = Package.get(ws, name)
+            config.set_package(package)
+        sys.path.append(package.path)
+        config.set_current(package)
     else:
-        work_dir = config.get('work_directory')
-    bt_factory_api = BTFactoryAPI(work_dir)
+        package = config.get_current()
+    bt_factory_api = BTFactoryAPI(package)
 
-def create_package(name):
+def create_package(ws, name):
     global bt_factory_api
     bt_factory_api = BTFactoryAPI()
-    bt_factory_api.create(name)
+    bt_factory_api.create(ws, name)
 
 def run(script, work_dir=None):
     global bt_factory_api

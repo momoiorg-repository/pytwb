@@ -35,7 +35,10 @@ class ComCreate:
     help = 'create ROS package'
     
     def invoke(self, api, args):
-        api.create(args[0])
+        dir = os.getcwd() # get work space address
+        if dir.endswith('src'):
+            dir = dir[:-4]
+        api.create(dir, args[0])
 
 # installation commands
 @command
