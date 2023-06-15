@@ -6,8 +6,8 @@ import ast
 import importlib
 import subprocess
 import traceback
-import yaml
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import pickle
 
 import rclpy
 import py_trees_ros
@@ -15,67 +15,79 @@ import py_trees_ros
 from .py_tree_loader import TreeLoader
 from . import built_in_command
 
-# global variable
-config = Config()
-
-#
-## Config: unique to each docker
-#
-class Config:
-    def __init__(self) -> None:
-        dir = os.path.expanduser('~/.pytwb')
-        self.dir = dir
-        if os.path.isfile(dir):
-            with open(dir) as f:
-                config = yaml.safe_load(f)
-        else:
-            config = {
-                "current" : None,
-                "pip3" : [],
-                "apt" : [],
-                "packages": {}
-            }
-            with open(dir, 'w') as f:
-                yaml.dump(config, f)
-        self.config = config
-    
-    def get(self, key):
-        return self.config.get(key)
-
-    def set(self, key, value):
-        if key == 'current':
-            self.config['current'] = value
-        if key == 'pip3' or key == 'apt':
-            if key in self.config[key]: return
-            self.config[key].append(value)
-        with open(self.dir, 'w') as f:
-            yaml.dump(self.config, f)
-
-    def set_current(self, package):
-        self.set('current', package)  
-
-    def add_package(self, package):
-        self.packages[(package.ws, package.name)] = package
-    
-    def get_package(self, ws, name):
-        return self.packages.get((ws, name))
-
+# package descriptor
 @dataclass
 class Package:
     ws: str
     name: str
     path: str
+    env: dict = field(default_factory=dict)
+    param: dict = field(default_factory=dict)
 
     def __str__(self) -> str:
         return f'name: {self.name}\n' + \
         f'work space: {self.ws}\n' + \
-        f'Python class path: {self.base_dir}'
+        f'Python class path: {self.path}'
     
     @classmethod
     def get(cls, ws, name):
         path = os.path.join(ws, f'src/{name}/{name}')
         return Package(ws, name, path)
 
+#
+## Config: unique to each docker
+#
+@dataclass
+class Config:
+    _current: Package = None
+    pip3: list = field(default_factory=list)
+    apt: list = field(default_factory=list)
+    packages: dict = field(default_factory=dict)
+
+    @classmethod
+    def load(cls) -> None:
+        dir = os.path.expanduser('~/.pytwb')
+        if os.path.isfile(dir):
+            with open(dir, 'rb') as f:
+                data = f.read()
+            return pickle.loads(data)
+        else:
+            config = Config()
+            with open(dir, 'wb') as f:
+                f.write(pickle.dumps(config))
+            return config
+
+    def set(self, key, value):
+        setattr(self,key,value)
+        self.dump()
+    
+    @property
+    def current(self):
+        return self._current
+    
+    @current.setter
+    def current(self, package):
+        self._current = package
+        self.dump()  
+
+    def add_pip3(self, value):
+        if value in self.pip3: return
+        self.pip3.append(value)
+        self.dump()
+    
+    def add_apt(self, value):
+        if value in self.apt: return
+        self.apt.append(value)
+        self.dump()
+
+    def add_package(self, package):
+        self.packages[(package.ws, package.name)] = package
+        self.dump()
+    
+    def dump(self):
+        dir = os.path.expanduser('~/.pytwb')
+        with open(dir, 'wb') as f:
+            f.write(pickle.dumps(self))
     
 #
 ## Env: allocated to each ROS package
@@ -134,8 +146,9 @@ class Env:
         return ret
 
 class BTFactoryAPI:
-    def __init__(self, work_dir=None) -> None:
-        self.env = Env(work_dir)
+    def __init__(self, package=None) -> None:
+        self.env = Env(package)
+        self.current = package
     
     def run(self, src, node_name='behavior_tree', period=1):
         rclpy.init()
@@ -159,25 +172,51 @@ class BTFactoryAPI:
     def shutdown(self):
         rclpy.shutdown()
     
-    def set_current_package(self, ws, name):
+    def search_package(self, ws, name):
+        global config
+        return config.packages.get((ws, name))
+
+    def register_package(self, ws, name):
         global config
         package = Package.get(ws, name)
-        sys.path.append(package.path)
-        self.env = Env(package)
         config.add_package(package)
-        config.set_current(package)
-        print(f'current package:\n{package}')
         return package
+    
+    def set_current_package(self, package):
+        global config
+        self.env = Env(package)
+        sys.path.append(package.path)
+        os.chdir(package.ws)
+        config.current = package
+        self.current = package
+        for k, v in package.env.items():
+            os.environ[k] = v
+
+    def get_current_package(self):
+        return self.current
+    
+    def delete_package(self, package):
+        global config
+        config.packages.pop((package.ws, package.name))
+        if self.current == package:
+            self.current = None 
+            config.current = None
     
     # create package
     def create(self, ws, name):
+        package = self.search_package(ws, name)
+        if package:
+            return False # already exists
+        
         # run ros2 pkg create
         dir = os.path.join(ws, 'src')
         subprocess.run(f'cd {dir};ros2 pkg create --build-type ament_python {name}',
                        shell=True)
+    
+        # build package object and register
+        package = self.register_package(ws, name)
         
         # create directories
-        package = self.set_current_package(ws, name)
         work_dir = package.path
         os.mkdir(os.path.join(work_dir, 'behavior'))
         os.mkdir(os.path.join(work_dir, 'trees'))
@@ -185,7 +224,7 @@ class BTFactoryAPI:
         # create main routines
         dbg_main = \
             'from pytwb.lib_main import initialize, do_command\n' + \
-            f'initialize({ws}, {name})\n' + \
+            f'initialize("{ws}", "{name}")\n' + \
             'do_command()\n'
         dbg_file = os.path.join(work_dir, 'dbg_main.py')
         with open(dbg_file,'w') as f:
@@ -193,19 +232,61 @@ class BTFactoryAPI:
 
         main = \
             'from pytwb.lib_main import initialize, run\n' + \
-            f'initialize({ws}, {name})\n' + \
+            f'initialize("{ws}", "{name}")\n' + \
             '#run(XML file name)\n'
         main_file = os.path.join(work_dir, 'main.py')
         with open(main_file,'w') as f:
-            f.write(main)  
+            f.write(main)
+        
+        self.set_current_package(package) # all done
+        return True
     
+    # register existing package
+    def register(self, ws, name):
+        package = self.search_package(ws, name)
+        if package:
+            return False # already exists
+        package = self.register_package(ws, name)
+        self.set_current_package(package)
+        return True
+           
     def get_config(self, key):
         global config
-        return config.get(key)
+        return getattr(config, key)
     
     def set_config(self, key, value):
         global config
         config.set(key, value)
+    
+    def add_pip3(self, val):
+        global config
+        config.add_pip3(val)
+
+    def add_apt(self, val):
+        global config
+        config.add_apt(val)
+    
+    def add_env(self, key, val):
+        self.current.env[key] = val
+        os.environ[key] = val
+    
+    def add_param(self, key, val):
+        self.current.param[key] = val
+    
+    def gen_dockerfile(self):
+        global config
+        if not self.current:
+            print('set current package')
+            return
+        envs = {}
+        params = {}
+        for p in config.packages:
+            envs.update(p.env)
+            params.update(p.param) 
+        dockerfile = gen_dockerfile(self.current.ws, config.apt, config.pip3, envs)
+        ofile = os.path.join(self.current.ws, '_Dockerfile')
+        with open(ofile, 'w') as f:
+            f.write(dockerfile)
 
 class CommandInterpreter:
     def __init__(self) -> None:
@@ -230,7 +311,7 @@ class CommandInterpreter:
 
     def exec_command(self, name, args):
         global bt_factory_api
-        if name == help or name == '?':
+        if name == 'help' or name == '?':
             for c in self.commands.values():
                 print(f'{c.name}: {c.help}')
             return
@@ -249,7 +330,7 @@ class CommandInterpreter:
                 return
             c_obj.invoke(bt_factory_api, args)
         else: # import from base dir
-            fn = self.env.get_path(name)
+            fn = bt_factory_api.env.get_path(name)
             if fn:
                 loader = importlib.machinery.SourceFileLoader( name, fn )
                 spec = importlib.util.spec_from_loader( name, loader )
@@ -266,15 +347,20 @@ def initialize(ws=None, name=None):
     global bt_factory_api, config
     package = None
     if ws:
-        package = config.get_package((ws, name))
+        package = config.packages.get((ws, name))
         if not package:
             package = Package.get(ws, name)
             config.set_package(package)
         sys.path.append(package.path)
-        config.set_current(package)
+        config.current = package
     else:
-        package = config.get_current()
+        package = config.current
     bt_factory_api = BTFactoryAPI(package)
+    if package:
+        bt_factory_api.set_current_package(package)
+        print(f'current package:\n{package}')
+    else:
+        print('no current package')
 
 def create_package(ws, name):
     global bt_factory_api
@@ -305,17 +391,70 @@ def do_command():
 
 # entry point for command line interface
 def cli():
-    create = None
-    work_dir = None
     if len(sys.argv) > 1:
         arg0 = sys.argv[1]
-        print(arg0)
         if arg0 == '-c':
-            create = sys.argv[2]
+            ws = os.path.abspath(sys.argv[2])
+            create_package(ws, sys.argv[3])
+            return
         else:
-            work_dir = sys.argv[1]
-    if not create:
-        initialize(work_dir)
-        do_command()
+            if len(sys.argv) == 2:
+                ws = os.getcwd()
+                name = sys.argv[1]
+            else:
+                ws = os.path.abspath(sys.argv[1])
+                name = sys.argv[2]
+            initialize(ws, name)
     else:
-        create_package(create)
+        initialize()
+    do_command()
+
+apt_init = [
+        'vim', 'xterm', 'less', 'ros-humble-navigation2',
+        'ros-humble-py-trees',  'ros-humble-py-trees-ros'
+    ]
+
+def gen_dockerfile(ws, apts, pip3s, envs):
+    ws_name = ws.split('/')[-1]
+    apt_list = 'RUN apt-get update && apt-get install -y --no-install-recommends '
+    apt_list += ' '.join(apt_init + apts)
+    
+    if len(pip3s) > 0:
+        pip3_list = 'RUN pip3 install '
+        pip3_list += ' '.join(pip3s)
+    else:
+        pip3_list = ''
+
+    env_list = ''
+    for key, value in envs.items():
+        env_list += f'ENV {key}={value}\n'
+
+    return \
+f'''
+FROM ros:humble
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+vim xterm less \
+ros-humble-navigation2 \
+ros-humble-py-trees \
+ros-humble-py-trees-ros
+
+{apt_list}
+
+{pip3_list}
+
+{env_list}
+
+WORKDIR /usr/local/lib
+RUN git clone https://github.com/momoiorg-repository/pytwb.git
+WORKDIR /usr/local/lib/pytwb
+RUN source /opt/ros/humble/setup.bash && pip3 install -e .
+
+WORKDIR /root
+COPY ./src {ws_name}
+RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
+'''
+
+# global variable
+config = Config.load()
