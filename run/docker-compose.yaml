@@ -1,0 +1,24 @@
+services:
+  # Base image containing dependencies.
+  pytwb:
+    image: pytwb-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: humble
+    # Interactive shell
+    stdin_open: true
+    tty: true
+    # # Networking and IPC for ROS 2
+    network_mode: host
+    ipc: host
+    # Allows graphical programs in the container.
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /home/tago/bt/pytwb_demo:/root/pytwb_demo:rw
+    command: sleep infinity
+

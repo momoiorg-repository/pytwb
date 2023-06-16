@@ -84,6 +84,11 @@ class Config:
         self.packages[(package.ws, package.name)] = package
         self.dump()
     
+    def update_current(self, package):
+        self.current = package
+        self.packages[(package.ws, package.name)] = package
+        self.dump()
+    
     def dump(self):
         dir = os.path.expanduser('~/.pytwb')
         with open(dir, 'wb') as f:
@@ -268,10 +273,12 @@ class BTFactoryAPI:
     
     def add_env(self, key, val):
         self.current.env[key] = val
+        config.update_current(self.current)
         os.environ[key] = val
     
     def add_param(self, key, val):
         self.current.param[key] = val
+        config.update_current(self.current)
     
     def gen_dockerfile(self):
         global config
@@ -280,7 +287,7 @@ class BTFactoryAPI:
             return
         envs = {}
         params = {}
-        for p in config.packages:
+        for p in config.packages.values():
             envs.update(p.env)
             params.update(p.param) 
         dockerfile = gen_dockerfile(self.current.ws, config.apt, config.pip3, envs)
@@ -350,7 +357,7 @@ def initialize(ws=None, name=None):
         package = config.packages.get((ws, name))
         if not package:
             package = Package.get(ws, name)
-            config.set_package(package)
+            config.add_package(package)
         sys.path.append(package.path)
         config.current = package
     else:
@@ -433,12 +440,6 @@ def gen_dockerfile(ws, apts, pip3s, envs):
 f'''
 FROM ros:humble
 SHELL ["/bin/bash", "-c"]
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-vim xterm less \
-ros-humble-navigation2 \
-ros-humble-py-trees \
-ros-humble-py-trees-ros
 
 {apt_list}
 
