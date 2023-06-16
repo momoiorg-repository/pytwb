@@ -38,34 +38,6 @@ class BehaviorClassDescriptor(BehaviorNodeDescriptor):
         super().__init__(name)
         self.bt_class = cls
 
-'''
-def initialize_built_in():
-    global built_in
-    for cls in built_in_bt.control_node:
-        name = cls.__name__
-        b_desc = BehaviorClassDescriptor(name, cls)
-        b_desc.type = NodeType.CONTROL
-        built_in[name] = b_desc
-        cons_args = list(cls.__init__.__code__.co_varnames)
-        cons_args.remove('self')
-        b_desc.cons_args = cons_args
-    for cls in built_in_bt.execution_node:
-        name = cls.__name__
-        b_desc = BehaviorClassDescriptor(name, cls)
-        b_desc.type = NodeType.EXECUTION
-        built_in[name] = b_desc
-        cons_args = list(cls.__init__.__code__.co_varnames)
-        cons_args.remove('self')
-        b_desc.cons_args = cons_args
-    for cls in built_in_bt.decorator_node:
-        name = cls.__name__
-        b_desc = BehaviorClassDescriptor(name, cls)
-        b_desc.type = NodeType.DECORATOR
-        built_in[name] = b_desc
-        cons_args = list(cls.__init__.__code__.co_varnames)
-        cons_args.remove('self')
-        b_desc.cons_args = cons_args
-'''
 def initialize_built_in():
     global built_in
     for b in built_in_bt.builtin_behaviors:

@@ -1,7 +1,0 @@
-{
-    "name": "pytwb sample",
-    "dockerfile": "Dockerfile",
-    "extensions": [
-            "ms-python.python"
-    ],
-}
