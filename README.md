@@ -15,10 +15,11 @@ cd pytwb
 ```
 
 press “F1”  
- -> select “Dev Containers: Open Folder in Container” tab 
-![Open Folder in Container]("doc/resource/VSCode1.jpg")  
+ -> select “Dev Containers: Open Folder in Container” tab  
+![Open Folder in Container](doc/resource/VSCode1.jpg)  
  -> select current directory as work directory  
  -> select “From ‘docker-compose.yaml’  
+![Open Folder in Container](doc/resource/VSCode2.jpg)  
 the corresponding docker will be started and VSCode is attached automatically.  
 Set working directory of VSCode by its "Open Folder" menu to “/root/pytwb_wb”.  
 input “export DISPLAY= xxx.xxx.xxx.xxx:0.0” from the Terminal section.  
