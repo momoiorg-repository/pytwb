@@ -11,7 +11,7 @@ WORKDIR /root
 RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
 
 WORKDIR /usr/local/lib
-RUN git clone https://github.com/momoiorg-repository/pytwb.git
+COPY . pytwb
 WORKDIR /usr/local/lib/pytwb
 RUN source /opt/ros/humble/setup.bash && pip3 install -e .
 
@@ -21,3 +21,4 @@ WORKDIR /usr/local/lib/vector_map
 RUN pip3 install -e .
 
 WORKDIR /root
+COPY ./pytwb_wb pytwb_wb

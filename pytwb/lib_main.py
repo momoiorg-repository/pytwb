@@ -196,6 +196,9 @@ class BTFactoryAPI:
         self.current = package
         for k, v in package.env.items():
             os.environ[k] = v
+        fname = os.path.join(package.path, '__init__.py')
+        loader = importlib.machinery.SourceFileLoader(package.name, fname)
+        loader.load_module()
 
     def get_current_package(self):
         return self.current

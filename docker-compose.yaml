@@ -3,7 +3,7 @@ services:
     image: pytwb-image
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: pytwb_wb/Dockerfile
       args:
         ROS_DISTRO: humble
     network_mode: host
@@ -12,7 +12,9 @@ services:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
       - NVIDIA_DRIVER_CAPABILITIES=all
-    volumes:
-      - /home/tago/bt/pytwb_demo:/root/pytwb_demo:rw
+#    volumes:
+# place existing package code here
+#      - <path to package>:/root/pytwb_ws/src/<package name>:rw
+      - /home/tago/bt/pytwb_demo/pytwb_ws/src/pytwb_demo:/root/pytwb_wb/src/pytwb_demo:rw
     command: sleep infinity
 
