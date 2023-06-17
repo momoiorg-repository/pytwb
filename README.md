@@ -1,9 +1,9 @@
 # pytwb: A workbench for creating ROS applications based on py_trees and py_trees_ros frameworks (beta).
-pytwb is assumed to be used with VSCode under docker environment. It generates and runs ROS packages on a command line basis. Although based on py_trees, it is possible to define behavior trees using XML, because pytwb is equipped with XML parser.  With writing XML and Python codes by VsCode, it becomes possible to collectively execute them interactively as a ROS application.
+pytwb is assumed to be used with VSCode under docker environment. It generates and runs ROS packages on a command line basis. Although based on py_trees, it is possible to define behavior trees using XML, because pytwb is equipped with the XML parser.  With just writing XML and Python codes by VsCode, it becomes possible to execute them interactively as a ROS application.
 
 ## Getting Started
 ### Prerequirement
-pytwb is a normal Python application and can be installed locally, but it is recommended to use docker to build the ROS application and create an execution environment by using pytwb. Development is done by first generating a docker under the control of VSCode. Therefore, the docker environment and VSCode must be available in the Ubuntu22 environment. It's standard to do it in WSL. VSCode must have a plugin installed for docker.
+pytwb is a normal Python application and can be installed locally, but it is recommended to use docker to build the ROS application and create an execution environment by using pytwb. Development is done by first generating a docker under the control of VSCode. Therefore, the docker environment and VSCode must be available for the Ubuntu-22 environment. It's standard to do it in WSL. VSCode must have a plugin installed for docker.
 
 ### Installation
 The entire installation process is managed by VSCode and you don't need to build explicitly.
@@ -25,21 +25,21 @@ Set working directory of VSCode by its "Open Folder" menu to “/root/pytwb_wb�
 input “export DISPLAY= xxx.xxx.xxx.xxx:0.0” from the Terminal section.  
 Install VSCode "Python in Dev Container" plugin.  
 Select “main.py” and press F5.  
-The “> “ prompt will be displayed in the Terminal section.   This implies that pytwb has been started successfully.  
+The “> “ prompt will be displayed in the Terminal section.   This implies that pytwb command session has been started successfully.  
 By inputting “create sample” command to it, The “sample” package will be created.
 
 ### Coding and running
 You need to input behavior code in Python and behavior tree code in XML by using VSCode.    
-First, create the behavior code in Python in  
+First, create the behavior code in Python under  
 ```
  /root/pytwb_wb/src/sample/sample/behavior  
 ```
-under the current directory, and create the XML code of the behavior tree in  
+and create the XML code of the behavior tree under  
 ```
-/root/pytwb_wb/src/sample/sample/trees.
+/root/pytwb_wb/src/sample/sample/trees
 ```
 
-When all codes are completed, input “run \<tree name\>” from the Terminal and the whole behavior tree will get running under the VSCode debug mode.
+When all codes are completed, input “run \<tree name\>” from the pytwb command session and the whole behavior tree will get running under the VSCode debug mode.
 The \<tree name\> is the file name of the XML behavior tree you created under the 'trees' directory, or it without the '.XML'.
 
 You can place break points to any locations of the Python code you created.
