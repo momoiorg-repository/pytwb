@@ -13,7 +13,9 @@ First, you need to retrieve the pytwb module.
 git clone https://github.com/momoiorg-repository/pytwb.git
 cd pytwb
 ```
-
+(at "pytwb" directory)  
+start VSCode by "code ."
+Select docker-compose.yaml
 press “F1”  
  -> select “Dev Containers: Open Folder in Container” tab  
 ![Open Folder in Container](doc/resource/VSCode1.jpg)  
