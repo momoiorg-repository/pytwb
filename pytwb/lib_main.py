@@ -420,8 +420,9 @@ def cli():
     do_command()
 
 apt_init = [
-        'vim', 'xterm', 'less', 'ros-humble-navigation2',
-        'ros-humble-py-trees',  'ros-humble-py-trees-ros'
+        'vim', 'xterm', 'less', 'git', 'python3-pip', 
+        'ros-humble-navigation2', 'ros-humble-py-trees',
+        'ros-humble-py-trees-ros'
     ]
 
 def gen_dockerfile(ws, apts, pip3s, envs):
