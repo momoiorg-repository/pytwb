@@ -126,6 +126,29 @@ class ComDockerfile:
         api.gen_dockerfile()
 
 @command
+class ComBehaviors:
+    name = 'behaviors'
+    num_arg = None
+    help = 'print registered behaviors [-l]'
+    
+    def invoke(self, api, args):
+        lopt = False
+        if len(args) > 0:
+            opt = args[0]
+            if opt.startswith('-'):
+                opt = opt[1:]
+                if opt == 'l':
+                    lopt = True
+        if lopt:
+            for b in api.get_behaviors():
+                print(f'{b.name}: {b.cls.desc if hasattr(b.cls, "desc")}')
+        else:
+            l = ''
+            for b in api.get_behaviors():
+                l += f' {b.name}'
+            print(l)
+
+@command
 class ComEnv:
     name = 'env'
     num_arg = 2

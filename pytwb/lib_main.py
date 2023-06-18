@@ -297,6 +297,12 @@ class BTFactoryAPI:
         ofile = os.path.join(self.current.ws, '_Dockerfile')
         with open(ofile, 'w') as f:
             f.write(dockerfile)
+    
+    def get_behaviors(self):
+        behaviors = []
+        for m in self.env.behavior_module_table.values():
+            behaviors += m.behaviors
+        return behaviors
 
 class CommandInterpreter:
     def __init__(self) -> None:

@@ -15,14 +15,14 @@ from . import built_in_bt
 #                         definition may come from:
 #                               "behavior" directory, py_trees, other tree file
 #                         table of BehaviorNodeDescriptor is kept by
-#                               "behavior_talbe" of BehaviorClassLoader object
+#                               "behavior_table" of BehaviorClassLoader object
 #                               
 # ModuleDescriptor: m_desc  allocated to each ".py" module
 #                           which may contain multiple behavior class definitions
 #                           m_desc is identified by module file name
 #                           table of ModuleDescriptor is kept by Env object
 #
-# TreeDescriptor: t_desc allocated to eahc ".xml" file under "trees" dir
+# TreeDescriptor: t_desc allocated to each ".xml" file under "trees" dir
 #                           this may contain multiple BehaviorNodeDescriptor
 #                           and is identified by file name
 #                           table of TreeDescriptor is kept by Env object
@@ -61,7 +61,7 @@ class ModuleDescriptor:
 class BehaviorClassLoader:
     def __init__(self, env) -> None:
         self.env = env
-        # self.behavior_table keeps BehaviorDescripor
+        # self.behavior_table keeps BehaviorDescriptor
         self.behavior_table = {}
         # update behavior module table
         new_behavior_module_table = {} # source file(=module) list of behaviors
