@@ -28,7 +28,16 @@ input “export DISPLAY= xxx.xxx.xxx.xxx:0.0” from the Terminal section.
 Install VSCode "Python in Dev Container" plugin.  
 Select “main.py” and press F5.  
 The “> “ prompt will be displayed in the Terminal section.   This implies that pytwb command session has been started successfully.  
-By inputting “create sample” command to it, The “sample” package will be created.
+The command input  
+
+\> help
+
+gives you the available command description.  
+And by inputting
+
+\> create sample
+
+the “sample” package will be created.
 
 ### Coding and running
 You need to input behavior code in Python and behavior tree code in XML by using VSCode.    
@@ -41,7 +50,9 @@ and create the XML code of the behavior tree under
 /root/pytwb_wb/src/sample/sample/trees
 ```
 
-When all codes are completed, input “run \<tree name\>” from the pytwb command session and the behavior tree based application will get running under the VSCode debug mode.
+When all codes are completed, input  
+\> run \<tree name\>  
+from the pytwb command session and the behavior tree based application will get running under the VSCode debug mode.
 The \<tree name\> is the file name of the XML behavior tree you created under the 'trees' directory, or it without the '.XML'.
 
 You can set break points to any locations of the Python code you created.

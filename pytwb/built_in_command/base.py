@@ -141,7 +141,7 @@ class ComBehaviors:
                     lopt = True
         if lopt:
             for b in api.get_behaviors():
-                print(f'{b.name}: {b.cls.desc if hasattr(b.cls, "desc")}')
+                print(f'{b.name}: {b.bt_class.desc if hasattr(b.bt_class, "desc") else ""}')
         else:
             l = ''
             for b in api.get_behaviors():

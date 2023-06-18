@@ -13,6 +13,7 @@ import rclpy
 import py_trees_ros
 
 from .py_tree_loader import TreeLoader
+from .behavior_loader import BehaviorClassLoader
 from . import built_in_command
 
 # package descriptor
@@ -300,7 +301,11 @@ class BTFactoryAPI:
     
     def get_behaviors(self):
         behaviors = []
-        for m in self.env.behavior_module_table.values():
+        table = self.env.behavior_module_table
+        if len(table) == 0:
+            BehaviorClassLoader(self.env)
+            table = self.env.behavior_module_table
+        for m in table.values():
             behaviors += m.behaviors
         return behaviors
 
