@@ -341,7 +341,8 @@ class CommandInterpreter:
                 com = [name[1:]] + args
             else:
                 com = args
-            subprocess.run(com)
+            line = ' '.join(com)
+            subprocess.run(line, shell=True)
             return
         c_obj = self.commands.get(name)
         if c_obj: # execute built in command

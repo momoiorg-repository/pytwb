@@ -3,26 +3,44 @@
 pytwb is a tool for supporting ROS behavior tree implementation using Python, and operates using py_trees and py_trees_ros. It has an XML parser and can execute a behavior tree described in XML. There are two ways to use it: from the API and from the command line.
 
 ## Usage from the command line
-When used from the command line, pytwb is intended to be used to build a ROS workspace from scratch or to add packages to an existing workspace. It is also assumed to use docker and VSCode as the underlying mechanism. Install according to the [Readme](../README.md), create a workspace, switch to docker + VSCode execution, create a package, start the command line, and develop and run the application.
+From the command line you can execute native commands and Linux commands.  Native commands are as follows:
+
+- run: run tree_name (without .xml)
+- package: show a detail of current package. When a package name is placed as its argument, current package will be changed to it.
+- pls: list registered packages
+- del: delete registered packages
+- create: create a ROS package
+- pip3: install Python libraries and record them
+- apt: install apt modules and record them
+- config: print pip3 and apt records
+- dockerfile: generate dockerfile template to _Dockerfile
+- behaviors: print registered behaviors [-l]
+- env: set environment parameter
+- param: set ROS node parameter
+
+You can get the list by "help" command.
+You can execute Linux commands by placing the escape character '!' before Linux command name.  Some frequently used Linux commands (cd, pwd, ls, echo) can also be executed without placing the escape character.
+
+When used from the command line, pytwb is intended to be used to build a ROS workspace from scratch or to add packages to an existing workspace. It is also assumed to use docker and VSCode as the underlying mechanism. Install according to the [Readme](../README.md), create a package, develop and run the application.
 
 The current directory of VSCode is assumed to be set to the workspace location.
-Create a package with pytwb -c <package name>. Inside the pytwb, the ros2 pkg command is executed internally, and in addition to generated standard ROS2 package directories, under the ./src/\<package name\>/\<package name\> directory, the behavior, trees directories, and dbg_main.py , main.py files are generated.
+When a new package is created by "create" command, the ros2 pkg command is executed internally, and in addition to generated standard ROS2 package directories, under the ./src/\<package name\>/\<package name\> directory, the behavior, trees directories, and main.py files are generated.  This directory is called as the base directory of each package.
 
-In pytwb, the base directory is set as a reference during work, in addition to the current directory (base directory). In this example, the initialization code will set it to ./src/\<package name\>/\<package name\>. Names of referenced files below are relative to this base directory.  Also, at runtime, the base directory location is added to Python's classpath.
+pytwb always keeps track of the current package.  It is designated by workspace path and name.  The workspace path, package name, base directory path, environment variable and parameter, installed external software etc. are kept in a pytwb data structure.
 
-In this state, create behavior code written in Python under "behavior" directory. The file name body is arbitrary and the extension should be ".py". Also, create behavior tree code written in XML under "trees" directory. The file extension of the behavior tree must be ".xml", but the file name body is arbitrary. The local file name without .xml is referred to as the name when specifying the behavior tree to be executed, so it is desirable to use a name that is easy to refer to.
+After creating a package, create behavior code written in Python under "behavior" directory. The file name body is arbitrary and the extension should be ".py". Also, create behavior tree code written in XML under "trees" directory. The file extension of the behavior tree must be ".xml", but the file name body is arbitrary. The local file name without .xml is referred to as the name when specifying the behavior tree to be executed, so it is desirable to use a name that is easy to refer to.
 
-Under the base directory, you can also create other directories and place the necessary files. When creating a Python module, the Python classpath includes the base directory at runtime, so the module name can be based on this as well.
+Under the base directory, you can also create other directories and place necessary files. When creating a Python module, the Python classpath includes the base directory at runtime, so the module name can be based on this as well.
 
-When the entire code is written, start debugging. Run dbg_main.py from VSCode to get the whole thing working. At this time, if it is executed in debug mode, it is possible to execute the entire application in debug mode.
+When the entire code is written, if pytwb is executed in debug mode, it is possible to execute the entire application in debug mode.
 
-The command prompt is displayed by executing dbg_main.py. The command you enter from the command prompt is:  
+The command to run application is:  
 \> run <behavior tree name>  
-\<behavior tree name\> is the file name body of XML file describing the behavior tree, omitting ".xml", as described above. This initiates the interpretive execution of the behavior tree. If you need to invoke some initialization codes before that, do it by adding them to dbg_main.py.
+\<behavior tree name\> is the file name body of XML file describing the behavior tree, omitting ".xml", as described above. This initiates the interpretive execution of the behavior tree. If you need to invoke some initialization codes before that, do it by adding them to \_\_init\_\_.py file under the base directory.
 
-After completing one execution of "run", even if dbg_main.py is still running, the code under behavior and trees directories can be changed at any time for debugging. The next time you enter the run command, it will automatically reload the Python module and parse the XML file. This shortens the turnaround time during debugging.
+After completing one execution of "run", even if pytwb is still running, the code under behavior and trees directories can be changed at any time for debugging. The next time you enter the run command, it will automatically reload the Python module and parse the XML file which are modified. This shortens the turnaround time during debugging.
 
-In the future, we plan to make it possible to install external Python packages and applications using apt and pip as if they are pytwb commands. By recording installed packages and application names through these commands, build files will be able to be generated semi-automatically.
+It is also possible to install external Python packages and applications using apt and pip as if they are pytwb commands. By recording installed packages and application names through these commands,  Dockerfile is generated semi-automatically.
 
 Pytwb is a tool that supports the development of ROS behavior tree applications using Python with such functions.
 
