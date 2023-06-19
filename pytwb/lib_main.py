@@ -160,6 +160,12 @@ class BTFactoryAPI:
         rclpy.init()
         try:
             ros_node = rclpy.node.Node(node_name)
+            if len(self.current.param) > 0:
+                parameters = []
+                for k, v in self.current.param.items():
+                    p = rclpy.parameter.Parameter(k, rclpy.Parameter.Type.STRING, v)
+                    parameters.append(p)
+                ros_node.set_parameters(parameters)        
             tloader = TreeLoader(self.env)
             tree = tloader.load_tree(src, ros_node)
             root = py_trees_ros.trees.BehaviourTree(tree, unicode_tree_debug=False)

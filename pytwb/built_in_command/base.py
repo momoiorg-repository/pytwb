@@ -148,7 +148,7 @@ class ComBehaviors:
             blist = []
             for b in api.get_behaviors():
                 blist.append(b.name)
-            for b in blist.sort():
+            for b in sorted(blist):
                 l += b
                 bc = len(b)
                 sc = 4-bc%4
@@ -179,6 +179,25 @@ class ComParam:
     
     def invoke(self, api, args):
         api.add_param(args[0], args[1])
+
+@command
+class ComLog:
+    name = 'log'
+    num_arg = None
+    help = 'start/stop log. log dir_name or log -'
+    
+    def invoke(self, api, args):
+        if len(args) == 0:
+            if hasattr(os.environ, 'ROS_LOG_DIR'):
+                print(os.environ['ROS_LOG_DIR'])
+            else:
+                print('log off')
+            return
+        dir = args[0]
+        if dir == '-':
+            os.environ.pop('ROS_LOG_DIR')
+        else:
+            os.environ['ROS_LOG_DIR'] = dir
 
 # linux compatible commands
 class CmdLinux(Com):
