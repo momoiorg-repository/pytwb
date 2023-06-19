@@ -40,7 +40,7 @@ The command to run application is:
 
 After completing one execution of "run", even if pytwb is still running, the code under behavior and trees directories can be changed at any time for debugging. The next time you enter the run command, it will automatically reload the Python module and parse the XML file which are modified. This shortens the turnaround time during debugging.
 
-It is also possible to install external Python packages and applications using apt and pip as if they are pytwb commands. By recording installed packages and application names through these commands,  Dockerfile is generated semi-automatically.
+It is also possible to install external Python packages and applications using apt and pip as if they are pytwb commands. By recording installed packages and application names through these commands,  Dockerfile is generated semi-automatically.  By 'dockerfile' command, '_Dockerfile' file is created under the workspace location as a Dockerfile draft.
 
 Pytwb is a tool that supports the development of ROS behavior tree applications using Python with such functions.
 
