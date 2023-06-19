@@ -144,9 +144,17 @@ class ComBehaviors:
                 print(f'{b.name}: {b.bt_class.desc if hasattr(b.bt_class, "desc") else ""}')
         else:
             l = ''
+            count = 0
             for b in api.get_behaviors():
-                l += f' {b.name}'
-            print(l)
+                l += b.name
+                bc = len(b.name)
+                sc = 8-bc%8
+                for _ in range(sc):
+                    l += ' '
+                count += bc + sc
+                if count > 64:
+                    print(l)
+                    count = 0
 
 @command
 class ComEnv:

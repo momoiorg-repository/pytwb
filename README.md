@@ -22,7 +22,7 @@ press “F1”
  -> select “From ‘docker-compose.yaml’  
 ![Open Folder in Container](doc/resource/VSCode2.jpg)  
 the corresponding docker will be started and VSCode is attached automatically.  
-Set working directory of VSCode by its "Open Folder" menu to “/root/pytwb_wb”  (1st time only. Automatically set after creating a package).  
+Set working directory of VSCode by its "Open Folder" menu to “/root/pytwb_ws”  (1st time only. Automatically set after creating a package).  
 Install VSCode "Python in Dev Container" plugin (1st time only).  
 input “export DISPLAY= xxx.xxx.xxx.xxx:0.0” from the Terminal section.  
 Select “main.py” and press F5.  

@@ -3,7 +3,7 @@ services:
     image: pytwb-image
     build:
       context: .
-      dockerfile: pytwb_wb/Dockerfile
+      dockerfile: pytwb_ws/Dockerfile
       args:
         ROS_DISTRO: humble
     network_mode: host

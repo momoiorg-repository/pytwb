@@ -21,4 +21,4 @@ WORKDIR /usr/local/lib/vector_map
 RUN pip3 install -e .
 
 WORKDIR /root
-COPY ./pytwb_wb pytwb_wb
+COPY ./pytwb_ws pytwb_ws
