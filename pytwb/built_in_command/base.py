@@ -156,6 +156,8 @@ class ComBehaviors:
                     print(l)
                     count = 0
                     l = ''
+            if len(l) > 0:
+                print(l)
 
 @command
 class ComEnv:
