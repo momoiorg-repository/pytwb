@@ -148,13 +148,14 @@ class ComBehaviors:
             for b in api.get_behaviors():
                 l += b.name
                 bc = len(b.name)
-                sc = 8-bc%8
+                sc = 4-bc%4
                 for _ in range(sc):
                     l += ' '
                 count += bc + sc
                 if count > 64:
                     print(l)
                     count = 0
+                    l = ''
 
 @command
 class ComEnv:
