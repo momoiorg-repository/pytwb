@@ -97,11 +97,11 @@ etc. An example of its use can be seen in the automatically generated main.py.
 
 ```
 from pytwb.lib_main import initialize, run
-initialize('./pytwb_demo/pytwb_demo')
+initialize(<workspace location>, <package name>)
 run(<behavior tree name>)
 ```
 
-This starts execution of \<behavior tree name\>. In that case, you need to call initialize first. The argument in that case is the location of the base directory.
+This starts execution of \<behavior tree name\>. 
 
 When you need to create a new ROS package from program, call create_package with the package name as the argument.
 
