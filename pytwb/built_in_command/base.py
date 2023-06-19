@@ -145,9 +145,12 @@ class ComBehaviors:
         else:
             l = ''
             count = 0
+            blist = []
             for b in api.get_behaviors():
-                l += b.name
-                bc = len(b.name)
+                blist.append(b.name)
+            for b in blist.sort():
+                l += b
+                bc = len(b)
                 sc = 4-bc%4
                 for _ in range(sc):
                     l += ' '

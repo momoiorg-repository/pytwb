@@ -300,12 +300,9 @@ class BTFactoryAPI:
             f.write(dockerfile)
     
     def get_behaviors(self):
+        BehaviorClassLoader(self.env)
         behaviors = []
-        table = self.env.behavior_module_table
-        if len(table) == 0:
-            BehaviorClassLoader(self.env)
-            table = self.env.behavior_module_table
-        for m in table.values():
+        for m in self.env.behavior_module_table.values():
             behaviors += m.behaviors
         return behaviors
 
