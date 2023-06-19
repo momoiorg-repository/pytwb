@@ -9,7 +9,7 @@ services:
     network_mode: host
     ipc: host
     environment:
-      - DISPLAY=${DISPLAY}
+      - DISPLAY=:0
 #    volumes:
 # place existing package code here
 #      - <path to package>:/root/pytwb_ws/src/<package name>:rw
