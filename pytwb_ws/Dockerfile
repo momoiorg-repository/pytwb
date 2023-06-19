@@ -15,10 +15,5 @@ COPY . pytwb
 WORKDIR /usr/local/lib/pytwb
 RUN source /opt/ros/humble/setup.bash && pip3 install -e .
 
-WORKDIR /usr/local/lib
-RUN git clone https://github.com/RobotSpatialCognition/vector_map.git
-WORKDIR /usr/local/lib/vector_map
-RUN pip3 install -e .
-
 WORKDIR /root
-COPY ./pytwb_ws pytwb_ws
+RUN mkdir pytwb_ws

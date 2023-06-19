@@ -9,9 +9,8 @@ services:
     network_mode: host
     ipc: host
     environment:
-      - DISPLAY=:0
-#    volumes:
-# place existing package code here
-#      - <path to package>:/root/pytwb_ws/src/<package name>:rw
+      - DISPLAY=:${DISPLAY}
+    volumes:
+      - ./pytwb_ws:/root/pytwb_ws:rw
     command: sleep infinity
 

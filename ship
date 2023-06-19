@@ -1,0 +1,1 @@
+cp -r docker-compose.yaml pytwb_ws $1

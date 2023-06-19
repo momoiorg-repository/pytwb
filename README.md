@@ -61,6 +61,9 @@ Finally, the package is completed by building a ROS package with
 \<package name\>/\<package name\>/main.py  
 as the main.
 
+### Create git repository
+You can create a new git repository based on the editing contents at any timing of the development.  After creating, you need to switch the development base to it with starting a new docker in the same way as the original pytwb repository.  This repository migration work should be done without running docker, and you need to create a vacant repository first.  Copy the contents under the pytwb_ws directory and docker-compole.yaml to new repository.  ‘ship’ script does the work.  Edit docker-compose.yaml properly after copying it.  In particular, the ‘image’ tag value should be modified.  Create Dockerfile under the pytwb_ws directory from _Dockerfile which was created by pytwb (and create README.md and LICENSE if needed.)
+
 ## Document
 - [overview](doc/overview.md)
 ## Sample code
