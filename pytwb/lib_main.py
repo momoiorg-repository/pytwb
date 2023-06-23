@@ -90,8 +90,8 @@ class Config:
         self.packages[(package.ws, package.name)] = package
         self.dump()
     
-    def dump(self):
-        dir = os.path.expanduser('~/.pytwb')
+    def dump(self, loc='~/.pytwb'):
+        dir = os.path.expanduser(loc)
         with open(dir, 'wb') as f:
             f.write(pickle.dumps(self))
     
@@ -301,6 +301,8 @@ class BTFactoryAPI:
         ofile = os.path.join(self.current.ws, '_Dockerfile')
         with open(ofile, 'w') as f:
             f.write(dockerfile)
+        ofile = os.path.join(self.current.ws, '_.pytwb')
+        config.dump(ofile)
     
     def get_behaviors(self):
         BehaviorClassLoader(self.env)
@@ -470,6 +472,7 @@ RUN source /opt/ros/humble/setup.bash && pip3 install -e .
 
 WORKDIR /root
 COPY ./src {ws_name}
+COPY _.pytwb .pytwb
 RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
 '''
 

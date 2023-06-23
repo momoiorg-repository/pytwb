@@ -16,4 +16,4 @@ WORKDIR /usr/local/lib/pytwb
 RUN source /opt/ros/humble/setup.bash && pip3 install -e .
 
 WORKDIR /root
-RUN mkdir pytwb_ws
+RUN mkdir pytwb_ws pytwb_base

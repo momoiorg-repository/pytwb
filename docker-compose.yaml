@@ -12,5 +12,6 @@ services:
       - DISPLAY=:${DISPLAY}
     volumes:
       - ./pytwb_ws:/root/pytwb_ws:rw
+      - ./pytwb_base:/root/pytwb_base:rw
     command: sleep infinity
 
