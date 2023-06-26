@@ -178,6 +178,13 @@ class BTFactoryAPI:
             raise e
         rclpy.shutdown()
     
+    def exec(self, trees):
+        global config
+        fname = os.path.join(config.current.path, 'main.py')
+        loader = importlib.machinery.SourceFileLoader('main', fname)
+        module = loader.load_module()
+        module.app_main(trees)
+    
     def shutdown(self):
         rclpy.shutdown()
     
@@ -200,9 +207,6 @@ class BTFactoryAPI:
         self.current = package
         for k, v in package.env.items():
             os.environ[k] = v
-        fname = os.path.join(package.path, '__init__.py')
-        loader = importlib.machinery.SourceFileLoader(package.name, fname)
-        loader.load_module()
 
     def get_current_package(self):
         return self.current
@@ -233,19 +237,18 @@ class BTFactoryAPI:
         os.mkdir(os.path.join(work_dir, 'behavior'))
         os.mkdir(os.path.join(work_dir, 'trees'))
 
-        # create main routines
-        dbg_main = \
-            'from pytwb.lib_main import initialize, do_command\n' + \
-            f'initialize("{ws}", "{name}")\n' + \
-            'do_command()\n'
-        dbg_file = os.path.join(work_dir, 'dbg_main.py')
-        with open(dbg_file,'w') as f:
-            f.write(dbg_main)
-
+        # create main routine
         main = \
-            'from pytwb.lib_main import initialize, run\n' + \
-            f'initialize("{ws}", "{name}")\n' + \
-            '#run(XML file name)\n'
+f'''
+from pytwb.lib_main import initialize, run
+def app_main(trees):
+# insert application specific initialization routine here
+    run(trees)
+
+if __name__ == "__main__":
+    initialize("{ws}", "{name}")
+#    app_main(XML file name to execute)
+'''
         main_file = os.path.join(work_dir, 'main.py')
         with open(main_file,'w') as f:
             f.write(main)
@@ -310,6 +313,9 @@ class BTFactoryAPI:
         for m in self.env.behavior_module_table.values():
             behaviors += m.behaviors
         return behaviors
+    
+    def get_base(self):
+        return '/root/pytwb_base'
 
 class CommandInterpreter:
     def __init__(self) -> None:

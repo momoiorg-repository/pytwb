@@ -3,7 +3,6 @@ import subprocess
 
 from ..common import command
 from . import Com
-from ..py_tree_loader import TreeLoader
 
 # native commands
 @command
@@ -13,6 +12,7 @@ class ComRun(Com):
     help = 'run tree_name (without .xml)'
 
     def invoke(self, api, args):
+
         api.run(args[0])
 
 @command

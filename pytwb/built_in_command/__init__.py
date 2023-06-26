@@ -5,4 +5,4 @@ class Com:
     def invoke(self, api, args):
         pass
 
-from . import base
+from . import base, use
