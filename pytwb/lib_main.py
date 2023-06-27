@@ -325,7 +325,7 @@ if __name__ == "__main__":
         return behaviors
     
     def get_base(self):
-        return '/root/pytwb_base'
+        return os.path.expanduser('~/.pytwb')
 
 class CommandInterpreter:
     def __init__(self) -> None:
