@@ -104,6 +104,7 @@ class ComApt:
         if len(args) < 2 or args[0] != 'install':
             return
         for t in args[1:]:
+            if t.startswith('-'): continue
             api.add_apt(t)
 
 @command
@@ -239,5 +240,11 @@ class ComLs(CmdLinux):
 @command
 class ComEcho(CmdLinux):
     name = 'echo'
+    num_arg = None
+    help = 'print arguments'
+
+@command
+class ComGit(CmdLinux):
+    name = 'git'
     num_arg = None
     help = 'print arguments'

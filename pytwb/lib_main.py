@@ -47,7 +47,10 @@ class Config:
 
     @classmethod
     def load(cls) -> None:
-        dir = os.path.expanduser('~/.pytwb')
+        base = os.path.expanduser('~/.pytwb')
+        if not os.path.isdir(base):
+            os.mkdir(base)
+        dir = os.path.expanduser('~/.pytwb/config')
         if os.path.isfile(dir):
             with open(dir, 'rb') as f:
                 data = f.read()
@@ -90,7 +93,7 @@ class Config:
         self.packages[(package.ws, package.name)] = package
         self.dump()
     
-    def dump(self, loc='~/.pytwb'):
+    def dump(self, loc='~/.pytwb/config'):
         dir = os.path.expanduser(loc)
         with open(dir, 'wb') as f:
             f.write(pickle.dumps(self))
@@ -108,6 +111,13 @@ class Env:
         self.package = package
         if not package: return
         work_dir = package.path
+        tree_dir = os.path.join(work_dir, 'trees')
+        if os.path.isdir(tree_dir):
+            self.tree.append(tree_dir)
+        behavior_dir = os.path.join(work_dir, 'behavior')
+        if os.path.isdir(behavior_dir):
+            self.behavior.append(behavior_dir)
+        work_dir = os.path.expanduser('~/.pytwb')
         tree_dir = os.path.join(work_dir, 'trees')
         if os.path.isdir(tree_dir):
             self.tree.append(tree_dir)
