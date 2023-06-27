@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+import py_trees
+
 from ..common import command
 from . import Com
 
@@ -75,6 +77,22 @@ class ComCreate:
                 api.register(dir, name)
         else:
             api.create(dir, name)
+
+@command
+class ComBb:
+    name = 'bb'
+    num_arg = 1
+    help = 'get bloackboard value'
+
+    def __init__(self) -> None:
+        self.bb = py_trees.blackboard.Blackboard()
+    
+    def invoke(self, api, args):
+        key = args[0]
+        if not self.bb.exists(key):
+            print("key does not exist")
+            return
+        print(self.bb.get(key))
 
 # installation commands
 @command
