@@ -324,6 +324,9 @@ if __name__ == "__main__":
             behaviors += m.behaviors
         return behaviors
     
+    def get_trees(self):
+        return self.env.get_tree_list()
+    
     def get_base(self):
         return os.path.expanduser('~/.pytwb')
 

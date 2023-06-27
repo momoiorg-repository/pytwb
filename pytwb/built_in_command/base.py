@@ -126,6 +126,23 @@ class ComDockerfile:
     def invoke(self, api, args):
         api.gen_dockerfile()
 
+def print_multi(src, align=4):
+    l = ''
+    count = 0
+    for b in sorted(src):
+        l += b
+        bc = len(b)
+        sc = align-bc%align
+        for _ in range(sc):
+            l += ' '
+        count += bc + sc
+        if count > 64:
+            print(l)
+            count = 0
+            l = ''
+    if len(l) > 0:
+        print(l)
+
 @command
 class ComBehaviors:
     name = 'behaviors'
@@ -144,24 +161,22 @@ class ComBehaviors:
             for b in api.get_behaviors():
                 print(f'{b.name}: {b.bt_class.desc if hasattr(b.bt_class, "desc") else ""}')
         else:
-            l = ''
-            count = 0
             blist = []
             for b in api.get_behaviors():
                 blist.append(b.name)
-            for b in sorted(blist):
-                l += b
-                bc = len(b)
-                sc = 4-bc%4
-                for _ in range(sc):
-                    l += ' '
-                count += bc + sc
-                if count > 64:
-                    print(l)
-                    count = 0
-                    l = ''
-            if len(l) > 0:
-                print(l)
+            print_multi(blist)
+
+@command
+class ComTrees:
+    name = 'trees'
+    num_arg = 0
+    help = 'print name of registered XML files'
+
+    def invoke(self, api, args):
+        tlist = []
+        for t in api.get_trees():
+            tlist.append(t.split('/')[-1])
+            print_multi(tlist)
 
 @command
 class ComEnv:
