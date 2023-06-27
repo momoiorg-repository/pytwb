@@ -12,8 +12,7 @@ class ComRun(Com):
     help = 'run tree_name (without .xml)'
 
     def invoke(self, api, args):
-
-        api.run(args[0])
+        api.exec(args[0])
 
 @command
 class ComPackage:
