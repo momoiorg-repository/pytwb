@@ -81,18 +81,24 @@ class ComCreate:
 @command
 class ComBb:
     name = 'bb'
-    num_arg = 1
+    num_arg = None
     help = 'get bloackboard value'
 
     def __init__(self) -> None:
         self.bb = py_trees.blackboard.Blackboard()
     
     def invoke(self, api, args):
-        key = args[0]
+        key = args.pop(0)
         if not self.bb.exists(key):
             print("key does not exist")
             return
-        print(self.bb.get(key))
+        val = self.bb.get(key)
+        if len(args) < 1:
+            print(val)
+            return
+        for a in args:
+            print(eval(a))
+        
 
 # installation commands
 @command
