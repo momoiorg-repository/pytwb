@@ -389,7 +389,7 @@ class CommandInterpreter:
 def initialize(ws=None, name=None):
     global bt_factory_api, config
     base = os.path.expanduser('~/.pytwb')
-    sys.path.append(os.path.join(base, 'lib'))
+    sys.path.append(base)
     package = None
     if ws:
         package = config.packages.get((ws, name))
