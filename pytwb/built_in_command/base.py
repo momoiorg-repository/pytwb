@@ -6,6 +6,28 @@ import py_trees
 from ..common import command
 from . import Com
 
+def print_multi(src, align=4):
+    l = ''
+    count = 0
+    for b in sorted(src):
+        l += b
+        bc = len(b)
+        sc = align-bc%align
+        for _ in range(sc):
+            l += ' '
+        count += bc + sc
+        if count > 64:
+            print(l)
+            count = 0
+            l = ''
+    if len(l) > 0:
+        print(l)
+
+def copy_file(source, destination):
+    with open(source, 'rb') as inf:
+        with open(destination, 'wb') as ouf:
+            ouf.write(inf.read())
+
 # native commands
 @command
 class ComRun(Com):
@@ -159,23 +181,6 @@ class ComImport:
     def invoke(self, api, args):
         api.gen_dockerfile()
 
-def print_multi(src, align=4):
-    l = ''
-    count = 0
-    for b in sorted(src):
-        l += b
-        bc = len(b)
-        sc = align-bc%align
-        for _ in range(sc):
-            l += ' '
-        count += bc + sc
-        if count > 64:
-            print(l)
-            count = 0
-            l = ''
-    if len(l) > 0:
-        print(l)
-
 @command
 class ComBehaviors:
     name = 'behaviors'
@@ -248,6 +253,66 @@ class ComLog:
         else:
             os.environ['ROS_LOG_DIR'] = dir
 
+def do_fetch(api, tree):
+    root, behaviors, trees = api.depend(tree)
+    path = api.get_current_package().path
+    b_files = set()
+    for b in behaviors.values():
+        f = b.module.__file__
+        if f.startswith(path): continue
+        b_files.add(f)
+    b_dir = os.path.join(path, 'behavior')
+    for bf_src in b_files:
+        short = bf_src.split('/')[-1]
+        bf_dest = os.path.join(b_dir, short)
+        copy_file(bf_src, bf_dest)
+    t_files = set()
+    if not root.startswith(path): t_files.add(root)
+    for t in trees.values():
+        f = t.t_desc.file_name
+        if f.startswith(path): continue
+        t_files.add(f)
+    t_dir = os.path.join(path, 'trees')
+    for tf_src in t_files:
+        short = tf_src.split('/')[-1]
+        tf_dest = os.path.join(t_dir, short)
+        copy_file(tf_src, tf_dest)
+
+@command
+class ComFetch:
+    name = 'fetch'
+    num_arg = 1
+    help = 'fetch code from base to current ws'
+    
+    def invoke(self, api, args):
+        do_fetch(api, args[0])
+
+@command
+class ComFinalize:
+    name = 'finalize'
+    num_arg = 1
+    help = 'finalize ws image'
+    
+    def invoke(self, api, args):
+        do_fetch(api, args[0])
+        api.gen_dockerfile()
+        api.save_config()
+        api.gen_main(args[0])
+
+@command
+class ComReset:
+    name = 'reset'
+    num_arg = 0
+    help = 'remove ws contents'
+    
+    def invoke(self, api, args):
+        print('All contents of the current ws will be removed.')
+        ans = input('Are you shure?[Y/n]').upper()
+        if ans != 'Y':
+            print('not removed')
+            return
+        api.clear()
+
 # linux compatible commands
 class CmdLinux(Com):
     def invoke(self, api, args):
@@ -295,4 +360,4 @@ class ComEcho(CmdLinux):
 class ComGit(CmdLinux):
     name = 'git'
     num_arg = None
-    help = 'print arguments'
+    help = 'git command'

@@ -8,6 +8,7 @@ import subprocess
 import traceback
 from dataclasses import dataclass, field
 import pickle
+import shutil
 
 import rclpy
 import py_trees_ros
@@ -108,7 +109,7 @@ class Env:
         self.tree = []
         self.behavior = []
         self.path = []
-        self.dep_module = set()
+        self.dep_behaviors = set()
         self.dep_trees = set()
         self.package = package
         if not package: return
@@ -174,7 +175,7 @@ class BTFactoryAPI:
             ros_node = rclpy.node.Node(node_name)
             if len(self.current.param) > 0:
                 for k, v in self.current.param.items():
-                    ros_node.declare_parameter(k, value=v)        
+                    ros_node.declare_parameter(k, value=v)
             tloader = TreeLoader(self.env)
             tree = tloader.load_tree(src, ros_node)
             root = py_trees_ros.trees.BehaviourTree(tree, unicode_tree_debug=False)
@@ -256,12 +257,8 @@ from pytwb.lib_main import initialize, run
 def app_main(trees):
 # insert application specific initialization routine here
     run(trees)
-
-if __name__ == "__main__":
-    initialize("{ws}", "{name}")
-#    app_main(XML file name to execute)
 '''
-        main_file = os.path.join(work_dir, 'main.py')
+        main_file = os.path.join(work_dir, 'app.py')
         with open(main_file,'w') as f:
             f.write(main)
         
@@ -316,7 +313,9 @@ if __name__ == "__main__":
         ofile = os.path.join(self.current.ws, '_Dockerfile')
         with open(ofile, 'w') as f:
             f.write(dockerfile)
-        ofile = os.path.join(self.current.ws, '_.pytwb')
+    
+    def save_config(self):
+        ofile = os.path.join(self.current.ws, '_conifg')
         config.dump(ofile)
     
     def get_behaviors(self):
@@ -331,6 +330,49 @@ if __name__ == "__main__":
     
     def get_base(self):
         return os.path.expanduser('~/.pytwb')
+    
+    def depend(self, target):
+        root = self.env.get_tree_file(target)
+        self.env.dep_behaviors = set()
+        self.env.dep_trees = set()
+        tloader = TreeLoader(self.env)
+        tloader.scan_tree(target)
+        behaviors = {}
+        for b in self.env.dep_behaviors:
+            behaviors[b.name] = b
+        trees = {}
+        for t in self.env.dep_trees:
+            trees[t.name] = t
+        return root, behaviors, trees
+    
+    def gen_main(self, tree_name):
+        ws = self.current.ws
+        name = self.current.name
+        code = \
+f'''
+from pytwb.lib_main import initialize
+import app
+
+if __name__ == "__main__":
+    initialize("{ws}", "{name}")
+    app.app_main("{tree_name}")
+'''
+        main_file = os.path.join(self.current.path, 'main.py')
+        with open(main_file,'w') as f:
+            f.write(code)
+    
+    def clear(self):
+        global config
+        ws = self.current.ws
+        conf_file = os.path.expanduser('~/.pytwb/config')
+        os.remove(conf_file)
+        config = Config.load()
+        self.current = None
+        self.env = Env(None)
+        src_dir = os.path.join(ws, 'src')
+        shutil.rmtree(src_dir)
+        os.mkdir(src_dir)
+        self.env = Env(None)
 
 class CommandInterpreter:
     def __init__(self) -> None:

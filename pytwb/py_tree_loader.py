@@ -49,6 +49,20 @@ class ParseNode:
         elif expression.startswith('[') and expression.endswith(']'):
             return eval(expression[1:-1])
         return expression
+    
+    def scan(self, bt_loader):
+        bnode_name = self.type_name
+        bnode = bt_loader.get_behavior(bnode_name)
+        if not bnode:
+            print(f'{bnode_name}: not found')
+            raise Exception('behavior not found')
+        if isinstance(bnode, TreeBehaviorDescriptor):
+            # this node is created by another behavior tree
+            loader = TreeLoader(bt_loader.env)
+            return loader.scan_tree(bnode.name)
+        # regular behavior class
+        for c in self.children:
+            c.scan(bt_loader)
 
 class RootParseNode(ParseNode):
     def __init__(self, element, desc) -> None:
@@ -64,6 +78,10 @@ class RootParseNode(ParseNode):
         bnode_body = bnode_cls(child_nodes[0])
 #        bnode_body.add_children(child_nodes)
         return bnode_body
+    
+    def scan(self, bt_loader):
+        for c in self.children:
+            c.scan(bt_loader)
 
 class BehaviorTreeParseNode(ParseNode):
     def __init__(self, element, desc) -> None:
@@ -118,7 +136,6 @@ class TreeLoader:
             print(f'{t_desc.file_name}: parse error({e})')
             return None
 
-
     def parse_one_element(self, xml_element, t_desc) -> ParseNode:
         pnode_cls = parse_node_table.get(xml_element.tag)
         if pnode_cls:
@@ -145,5 +162,20 @@ class TreeLoader:
                 b_loader.append_behavior_from_tree(b)
         return t_desc.root.generate(ros_node, b_loader)
         
-        
+    def scan_tree(self, name) -> None:
+        b_loader = BehaviorTable(self.env)
+        for t in self.env.tree_table.values():
+            for b in t.behaviors:
+                b_loader.append_behavior_from_tree(b)
+        tf_name = self.env.get_tree_file(name)
+        if not tf_name:
+            raise Exception('unknown tree file name')
+        t_desc = self.env.tree_table.get(tf_name)
+        if not t_desc:
+            t_desc = TreeDescriptor(tf_name, None)
+            t_desc.body = self.parse_tree(t_desc)
+            for b in t_desc.behavior:
+                b_loader.append_behavior_from_tree(b)
+        t_desc.root.scan(b_loader)
+            
     
