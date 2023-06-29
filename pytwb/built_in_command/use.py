@@ -29,6 +29,7 @@ class ComUse(Com):
                 d_dir = os.path.join(dest, dir)
                 os.makedirs(d_dir, exist_ok=True)
                 for fname in os.listdir(s_dir):
+                    if fname.startswith('_'): continue
                     s_file = os.path.join(s_dir, fname)
                     if os.path.isdir(s_file): continue
                     d_file = os.path.join(d_dir, fname)
@@ -45,6 +46,7 @@ class ComUse(Com):
                             fname = input('input new name')
                             d_file = os.path.join(d_dir, fname)
                             copy_file(source, d_file)
+                            
 @command
 class ComSave(Com):
     name = 'save'

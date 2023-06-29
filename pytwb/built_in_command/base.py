@@ -97,7 +97,7 @@ class ComBb:
             print(val)
             return
         for a in args:
-            print(eval(a))
+            print(f'{a}= {eval(a)}')
         
 
 # installation commands
@@ -145,6 +145,16 @@ class ComDockerfile:
     name = 'dockerfile'
     num_arg = 0
     help = 'generate dockerfile template to _Dockerfile'
+    
+    def invoke(self, api, args):
+        api.gen_dockerfile()
+
+
+@command
+class ComImport:
+    name = 'import'
+    num_arg = None
+    help = 'copy behaviors and trees'
     
     def invoke(self, api, args):
         api.gen_dockerfile()
@@ -199,7 +209,7 @@ class ComTrees:
         tlist = []
         for t in api.get_trees():
             tlist.append(t.split('/')[-1])
-            print_multi(tlist)
+        print_multi(tlist)
 
 @command
 class ComEnv:

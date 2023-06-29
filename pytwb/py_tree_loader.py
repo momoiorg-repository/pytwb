@@ -1,7 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
 
-from .behavior_loader import BehaviorTable
+from .behavior_loader import BehaviorTable, TreeBehaviorDescriptor
 
 class ParseNode:
     def __init__(self, element, desc) -> None:
@@ -19,6 +19,11 @@ class ParseNode:
         if not bnode:
             print(f'{bnode_name}: not found')
             raise Exception('behavior not found')
+        if isinstance(bnode, TreeBehaviorDescriptor):
+            # this node is created by another behavior tree
+            loader = TreeLoader(bt_loader.env)
+            return loader.load_tree(bnode.name,ros_node)
+        # regular behavior class
         bnode_cls = bnode.bt_class
         child_nodes = []
         for c in self.children:

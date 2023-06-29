@@ -108,6 +108,8 @@ class Env:
         self.tree = []
         self.behavior = []
         self.path = []
+        self.dep_module = set()
+        self.dep_trees = set()
         self.package = package
         if not package: return
         work_dir = package.path

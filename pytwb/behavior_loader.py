@@ -34,9 +34,10 @@ class BehaviorNodeDescriptor:
         self.name = name
 
 class BehaviorClassDescriptor(BehaviorNodeDescriptor):
-    def __init__(self, name, cls) -> None:
+    def __init__(self, name, cls, module=None) -> None:
         super().__init__(name)
         self.bt_class = cls
+        self.module = module
 
 def initialize_built_in():
     global built_in
@@ -117,7 +118,7 @@ class BehaviorClassLoader:
                 if d.id != 'behavior': continue
                 b_name = elm.name
                 cls = getattr(module, b_name)
-                b_desc = BehaviorClassDescriptor(b_name, cls)
+                b_desc = BehaviorClassDescriptor(b_name, cls, module)
                 cons_args = list(cls.__init__.__code__.co_varnames)
                 cons_args.remove('self')
                 b_desc.cons_args = cons_args # set constructor arguments
@@ -126,9 +127,10 @@ class BehaviorClassLoader:
         m_desc.behaviors = behaviors # keep behavior descriptor in module descriptor
         
 class TreeBehaviorDescriptor(BehaviorNodeDescriptor):
-    def __init__(self, name, tree) -> None:
+    def __init__(self, name, behavior) -> None:
         super().__init__(name)
-        self.behavior_tree = tree
+        self.behavior_tree = behavior
+        self.t_desc = behavior.desc
 
 class BehaviorTable:
     def __init__(self, env) -> None:
@@ -136,17 +138,21 @@ class BehaviorTable:
         self.tree_behavior = {}
         self.class_loader = BehaviorClassLoader(env)
 
-    def append_behavior_from_tree(self, b):
-        desc = TreeBehaviorDescriptor(b.name, b)
-        self.tree_behavior[b.name] = desc
+    def append_behavior_from_tree(self, behavior):
+        b_desc = TreeBehaviorDescriptor(behavior.name, behavior)
+        self.tree_behavior[behavior.name] = b_desc
 
     def get_behavior(self, name) -> BehaviorNodeDescriptor:
         # try external behavior class
         ret = self.class_loader.behavior_table.get(name)
-        if ret: return ret
+        if ret:
+            self.env.dep_behaviors.add(ret)
+            return ret
         # try xml file originated behavior definition
         ret = self.tree_behavior.get(name)
-        if ret: return ret
+        if ret:
+            self.env.dep_trees.add(ret)
+            return ret
         # try built in behavior class
         return built_in.get(name)
 
