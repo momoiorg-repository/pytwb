@@ -42,7 +42,7 @@ class ComRun(Com):
 class ComPackage:
     name = 'package'
     num_arg = None
-    help = 'change current package'
+    help = 'package [package_name] :: change current package'
     
     def invoke(self, api, args):
         if len(args) == 0:
@@ -65,7 +65,7 @@ class ComPackage:
 class ComPls:
     name = 'pls'
     num_arg = None
-    help = 'list registered packages'
+    help = 'pls :: list registered packages'
     
     def invoke(self, api, args):
         for p in api.get_config('packages').values():
@@ -75,7 +75,7 @@ class ComPls:
 class ComDel:
     name = 'del'
     num_arg = None
-    help = 'delete registered packages'
+    help = 'del package_name :: delete registered packages'
     
     def invoke(self, api, args):
         for name in args:
@@ -86,7 +86,7 @@ class ComDel:
 class ComCreate:
     name = 'create'
     num_arg = 1
-    help = 'create ROS package'
+    help = 'create new_package_name :: create ROS package'
     
     def invoke(self, api, args):
         dir = os.getcwd() # get work space address
@@ -104,7 +104,7 @@ class ComCreate:
 class ComBb:
     name = 'bb'
     num_arg = None
-    help = 'get bloackboard value'
+    help = 'bb key [format]* :: get bloackboard value'
 
     def __init__(self) -> None:
         self.bb = py_trees.blackboard.Blackboard()
@@ -156,7 +156,7 @@ class ComApt:
 class ComConfig:
     name = 'config'
     num_arg = 0
-    help = 'print pip3 and apt records'
+    help = 'config :: print pip3 and apt records'
     
     def invoke(self, api, args):
         print(f'pip3: {api.get_config("pip3")}')
@@ -166,7 +166,7 @@ class ComConfig:
 class ComDockerfile:
     name = 'dockerfile'
     num_arg = 0
-    help = 'generate dockerfile template to _Dockerfile'
+    help = 'dockerfile :: generate dockerfile template to _Dockerfile'
     
     def invoke(self, api, args):
         api.gen_dockerfile()
@@ -176,7 +176,7 @@ class ComDockerfile:
 class ComImport:
     name = 'import'
     num_arg = None
-    help = 'copy behaviors and trees'
+    help = 'import tree_name :: copy behaviors and trees'
     
     def invoke(self, api, args):
         api.gen_dockerfile()
@@ -185,7 +185,7 @@ class ComImport:
 class ComBehaviors:
     name = 'behaviors'
     num_arg = None
-    help = 'print registered behaviors [-l]'
+    help = 'behaviors [-l] :: print registered behaviors'
     
     def invoke(self, api, args):
         lopt = False
@@ -208,7 +208,7 @@ class ComBehaviors:
 class ComTrees:
     name = 'trees'
     num_arg = 0
-    help = 'print name of registered XML files'
+    help = 'trees :: print name of registered XML files'
 
     def invoke(self, api, args):
         tlist = []
@@ -220,7 +220,7 @@ class ComTrees:
 class ComEnv:
     name = 'env'
     num_arg = 2
-    help = 'set environment parameter'
+    help = 'env key value :: set environment parameter'
     
     def invoke(self, api, args):
         api.add_env(args[0], args[1])
@@ -229,7 +229,7 @@ class ComEnv:
 class ComParam:
     name = 'param'
     num_arg = 2
-    help = 'set ROS node parameter'
+    help = 'param key value :: set ROS node parameter'
     
     def invoke(self, api, args):
         api.add_param(args[0], args[1])
@@ -238,7 +238,7 @@ class ComParam:
 class ComLog:
     name = 'log'
     num_arg = None
-    help = 'start/stop log. log dir_name or log -'
+    help = 'log [dir_name] :: start/stop log. log dir_name or log -'
     
     def invoke(self, api, args):
         if len(args) == 0:
@@ -282,7 +282,7 @@ def do_fetch(api, tree):
 class ComFetch:
     name = 'fetch'
     num_arg = 1
-    help = 'fetch code from base to current ws'
+    help = 'fetch package_name :: fetch code from base to current ws'
     
     def invoke(self, api, args):
         do_fetch(api, args[0])
@@ -291,7 +291,7 @@ class ComFetch:
 class ComFinalize:
     name = 'finalize'
     num_arg = 1
-    help = 'finalize ws image'
+    help = 'finalize :: generate files to complete ws image'
     
     def invoke(self, api, args):
         do_fetch(api, args[0])
