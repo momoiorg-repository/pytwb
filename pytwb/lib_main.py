@@ -193,8 +193,8 @@ class BTFactoryAPI:
     
     def exec(self, trees):
         global config
-        fname = os.path.join(config.current.path, 'main.py')
-        loader = importlib.machinery.SourceFileLoader('main', fname)
+        fname = os.path.join(config.current.path, 'app.py')
+        loader = importlib.machinery.SourceFileLoader('app', fname)
         module = loader.load_module()
         module.app_main(trees)
     
@@ -250,17 +250,17 @@ class BTFactoryAPI:
         os.mkdir(os.path.join(work_dir, 'behavior'))
         os.mkdir(os.path.join(work_dir, 'trees'))
 
-        # create main routine
-        main = \
+        # create app_main routine
+        app = \
 f'''
-from pytwb.lib_main import initialize, run
+from pytwb.lib_main import run
 def app_main(trees):
 # insert application specific initialization routine here
     run(trees)
 '''
         main_file = os.path.join(work_dir, 'app.py')
         with open(main_file,'w') as f:
-            f.write(main)
+            f.write(app)
         
         self.set_current_package(package) # all done
         return True
