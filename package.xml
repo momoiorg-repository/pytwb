@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>pytwb</name>
+  <version>0.0.1</version>
+  <description>
+    workbench tool for py_trees and py_trees_ros
+  </description>
+  <author>Kazuya Tago</author>
+  
+  <maintainer email="ktago.gm@gmail.com">Kazuya Tago</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">https://momoi.org/?yada_wiki=ros-related-projects</url>
+  <url type="repository">https://github.com/momoiorg-repository/pytwb</url>
+
+  <build_depend>python3-setuptools</build_depend>
+
+  <depend>rclpy</depend>
+  
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
