@@ -315,7 +315,7 @@ def app_main(trees):
             f.write(dockerfile)
     
     def save_config(self):
-        ofile = os.path.join(self.current.ws, '_conifg')
+        ofile = os.path.join(self.current.ws, '_config')
         config.dump(ofile)
     
     def get_behaviors(self):
