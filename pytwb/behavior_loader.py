@@ -71,26 +71,15 @@ class BehaviorClassLoader:
             mname = f.split('/')[-1][:-3]
             m_desc = env.behavior_module_table.get(f)
             if (not m_desc) or (m_desc.mtime < mtime): # need recompilation
-                m_desc = self.load_behavior_module(f)
-            else:
-                for b in m_desc.behaviors:
-                    self.behavior_table[b.name] = b
+                m_desc = self.read_module_file(f)
+                env.behavior_module_table[f] = m_desc
+            for b in m_desc.behaviors:
+                ex_b = self.behavior_table.get(b.name)
+                if ex_b and ex_b.m_desc.mtime > b.m_desc.mtime: continue
+                self.behavior_table[b.name] = b
             new_behavior_module_table[f] = m_desc
         env.behavior_module_table = new_behavior_module_table
-            # module table is kept in Env object
-        self.bb = py_trees.blackboard.Blackboard()
 
-    def load_behavior_module(self, file_name) -> ModuleDescriptor:
-        m_desc = self.env.behavior_module_table.get(file_name)
-        modtime = os.stat(file_name).st_mtime
-        if m_desc and modtime <= m_desc.mtime:
-            for b in m_desc.behaviors:
-                self.behavior_table[b.name] = b
-            return m_desc
-        m_desc = self.read_module_file(file_name)
-        self.env.behavior_module_table[m_desc.name] = m_desc
-        return m_desc
-    
     # read in module directly from source file
     def read_module_file(self, file_name) -> ModuleDescriptor:
         name = file_name.split('/')[-1][:-3] 
@@ -102,6 +91,7 @@ class BehaviorClassLoader:
         m_desc.body = mod
         self.extract_behavior(m_desc)
         return m_desc
+
 
     # extract behavior definitions from module
     def extract_behavior(self, m_desc) -> None:
@@ -119,12 +109,15 @@ class BehaviorClassLoader:
                 b_name = elm.name
                 cls = getattr(module, b_name)
                 b_desc = BehaviorClassDescriptor(b_name, cls, module)
+                b_desc.m_desc = m_desc
                 cons_args = list(cls.__init__.__code__.co_varnames)
                 cons_args.remove('self')
                 b_desc.cons_args = cons_args # set constructor arguments
                 behaviors.append(b_desc)
-                self.behavior_table[b_name] = b_desc
-        m_desc.behaviors = behaviors # keep behavior descriptor in module descriptor
+                ex_b = self.behavior_table.get(b_name)
+                if (not ex_b) or ex_b.m_desc.mtime < m_desc.mtime:
+                    self.behavior_table[b_name] = b_desc
+        m_desc.behaviors = behaviors # keep behavior descriptors in this module descriptor
         
 class TreeBehaviorDescriptor(BehaviorNodeDescriptor):
     def __init__(self, name, behavior) -> None:
@@ -139,6 +132,10 @@ class BehaviorTable:
         self.class_loader = BehaviorClassLoader(env)
 
     def append_behavior_from_tree(self, behavior):
+        ex_b_desc = self.tree_behavior.get(behavior.name)
+        if ex_b_desc: # there already is a behavior in the table
+            if ex_b_desc.t_desc.mtime > behavior.desc.mtime:
+                return
         b_desc = TreeBehaviorDescriptor(behavior.name, behavior)
         self.tree_behavior[behavior.name] = b_desc
 

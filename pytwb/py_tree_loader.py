@@ -148,7 +148,7 @@ class TreeLoader:
     
     def load_tree(self, name, ros_node) -> TreeDescriptor:
         b_loader = BehaviorTable(self.env)
-        for t in self.env.tree_table.values():
+        for t in self.env.tree_table.values():         
             for b in t.behaviors:
                 b_loader.append_behavior_from_tree(b)
         tf_name = self.env.get_tree_file(name)
