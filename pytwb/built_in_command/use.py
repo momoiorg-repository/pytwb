@@ -9,7 +9,7 @@ def copy_file(source, destination):
         with open(destination, 'wb') as ouf:
             ouf.write(inf.read())
 
-def do_fetch(api, tree):
+def do_fetch(api, tree, mode=None):
     root, behaviors, trees = api.depend(tree)
     path = api.get_current_package().path
     b_files = set()
@@ -33,7 +33,14 @@ def do_fetch(api, tree):
         short = tf_src.split('/')[-1]
         tf_dest = os.path.join(t_dir, short)
         copy_file(tf_src, tf_dest)
-
+    l_src_dir = os.path.join(api.get_base(), 'lib')
+    l_dest_dir = os.path.join(path, 'lib')
+    if not os.path.isdir(l_dest_dir): os.mkdir(l_dest_dir)
+    for l in os.listdir(l_src_dir):
+        if not l.endswith('.py'): continue
+        l_src = os.path.join(l_src_dir, l)
+        l_dest = os.path.join(l_dest_dir, l)
+        copy_file(l_src, l_dest)
 
 @command
 class ComUse(Com):
