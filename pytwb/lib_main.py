@@ -463,6 +463,10 @@ def create_package(ws, name):
     bt_factory_api = BTFactoryAPI()
     bt_factory_api.create(ws, name)
 
+def get_package():
+    global bt_factory_api
+    return bt_factory_api.get_current_package()
+
 def run(script, work_dir=None):
     global bt_factory_api
     if work_dir:
