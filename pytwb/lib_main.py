@@ -16,15 +16,14 @@ import py_trees_ros
 from .py_tree_loader import TreeLoader
 from .behavior_loader import BehaviorClassLoader
 from . import built_in_command
+from .dependency import get_env_table, get_param_table, emit_dockerfile, print_com_log
 
 # package descriptor
 @dataclass
 class Package:
-    ws: str
-    name: str
-    path: str
-    env: dict = field(default_factory=dict)
-    param: dict = field(default_factory=dict)
+    ws: str     # workspace directory
+    name: str   # package name
+    path: str   # program directory
 
     def __str__(self) -> str:
         return f'name: {self.name}\n' + \
@@ -37,14 +36,17 @@ class Package:
         return Package(ws, name, path)
 
 #
-## Config: unique to each docker
+## Config: configuration data
+#           which is unique to each docker.
 #
 @dataclass
 class Config:
     _current: Package = None
-    pip3: list = field(default_factory=list)
-    apt: list = field(default_factory=list)
+            # current package
+    com_log: list = field(default_factory=list)
+            # command log
     packages: dict = field(default_factory=dict)
+            # active packages
 
     @classmethod
     def load(cls) -> None:
@@ -74,15 +76,9 @@ class Config:
     def current(self, package):
         self._current = package
         self.dump()  
-
-    def add_pip3(self, value):
-        if value in self.pip3: return
-        self.pip3.append(value)
-        self.dump()
     
-    def add_apt(self, value):
-        if value in self.apt: return
-        self.apt.append(value)
+    def add_clog(self, clog):
+        self.com_log.append(clog)
         self.dump()
 
     def add_package(self, package):
@@ -98,6 +94,17 @@ class Config:
         dir = os.path.expanduser(loc)
         with open(dir, 'wb') as f:
             f.write(pickle.dumps(self))
+
+#
+## CLog: command log
+#           records installation commands such as 'pip3' and 'apt'.
+#
+@dataclass
+class CLog:
+    dir: str        # current directory when the command is executed
+    package: str    # name of the active package when the command is executed
+    command: str    # name of the command executed
+    args: list      # arg list of the command
     
 #
 ## Env: allocated to each ROS package
@@ -166,15 +173,24 @@ class Env:
 
 class BTFactoryAPI:
     def __init__(self, package=None) -> None:
+        global config
         self.env = Env(package)
         self.current = package
+        self.clog_keys = ['pip3', 'apt', 'env', 'param']
+        self.param = get_param_table(config)
     
     def run(self, src, node_name='behavior_tree', period=1):
         rclpy.init()
+        node = rclpy.node.Node(node_name)
+        self._run(src, node, period)
+        rclpy.shutdown()
+        
+    def _run(self, src, ros_node, period=1):
+        global config
         try:
-            ros_node = rclpy.node.Node(node_name)
-            if len(self.current.param) > 0:
-                for k, v in self.current.param.items():
+            params = get_param_table(config)
+            if len(params) > 0:
+                for k, v in params.items():
                     ros_node.declare_parameter(k, value=v)
             tloader = TreeLoader(self.env)
             tree = tloader.load_tree(src, ros_node)
@@ -185,11 +201,10 @@ class BTFactoryAPI:
             try:
                 rclpy.spin(ros_node)
             except SystemExit:
-                print('done')
+                pass
         except Exception as e:
-            rclpy.shutdown()
-            raise e
-        rclpy.shutdown()
+            print(f'bt error: {e}')
+        ros_node.destroy_node()
     
     def exec(self, trees):
         global config
@@ -197,6 +212,14 @@ class BTFactoryAPI:
         loader = importlib.machinery.SourceFileLoader('app', fname)
         module = loader.load_module()
         module.app_main(trees)
+    
+    def record_command(self, name, args):
+        global config
+        if name in self.clog_keys:
+            package = config._current
+            if package: package = package.name
+            clog = CLog(os.getcwd(), package, name, args)
+            config.add_clog(clog)
     
     def shutdown(self):
         rclpy.shutdown()
@@ -218,8 +241,6 @@ class BTFactoryAPI:
         os.chdir(package.ws)
         config.current = package
         self.current = package
-        for k, v in package.env.items():
-            os.environ[k] = v
 
     def get_current_package(self):
         return self.current
@@ -282,34 +303,12 @@ def app_main(trees):
         global config
         config.set(key, value)
     
-    def add_pip3(self, val):
-        global config
-        config.add_pip3(val)
-
-    def add_apt(self, val):
-        global config
-        config.add_apt(val)
-    
-    def add_env(self, key, val):
-        self.current.env[key] = val
-        config.update_current(self.current)
-        os.environ[key] = val
-    
-    def add_param(self, key, val):
-        self.current.param[key] = val
-        config.update_current(self.current)
-    
     def gen_dockerfile(self):
         global config
         if not self.current:
             print('set current package')
             return
-        envs = {}
-        params = {}
-        for p in config.packages.values():
-            envs.update(p.env)
-            params.update(p.param) 
-        dockerfile = gen_dockerfile(self.current.ws, config.apt, config.pip3, envs)
+        dockerfile = emit_dockerfile(config)
         ofile = os.path.join(self.current.ws, '_Dockerfile')
         with open(ofile, 'w') as f:
             f.write(dockerfile)
@@ -344,6 +343,10 @@ def app_main(trees):
         for t in self.env.dep_trees:
             trees[t.name] = t
         return root, behaviors, trees
+    
+    def print_com_log(self):
+        global config
+        print_com_log(config)
     
     def gen_main(self, tree_name):
         ws = self.current.ws
@@ -409,6 +412,7 @@ class CommandInterpreter:
             line = ' '.join(com)
             subprocess.run(line, shell=True)
             return
+        bt_factory_api.record_command(name, args)
         c_obj = self.commands.get(name)
         if c_obj: # execute built in command
             an = c_obj.num_arg
@@ -450,6 +454,9 @@ def initialize(ws=None, name=None):
         print(f'current package:\n{package}')
     else:
         print('no current package')
+    env_var_table = get_env_table(config)
+    for k, v in env_var_table.items():
+        os.environ[k] = v
 
 def create_package(ws, name):
     global bt_factory_api
@@ -462,6 +469,10 @@ def run(script, work_dir=None):
         bt_factory_api.change_directory(work_dir)
     bt_factory_api.run(script)
 
+def run_internal(script, node):
+    global bt_factory_api
+    bt_factory_api._run(script, node)
+    
 def do_command():
     command_interpreter = CommandInterpreter()
 
@@ -497,49 +508,6 @@ def cli():
     else:
         initialize()
     do_command()
-
-apt_init = [
-        'vim', 'xterm', 'less', 'git', 'python3-pip', 
-        'ros-humble-navigation2', 'ros-humble-py-trees',
-        'ros-humble-py-trees-ros'
-    ]
-
-def gen_dockerfile(ws, apts, pip3s, envs):
-    ws_name = ws.split('/')[-1]
-    apt_list = 'RUN apt-get update && apt-get install -y --no-install-recommends '
-    apt_list += ' '.join(apt_init + apts)
-    
-    if len(pip3s) > 0:
-        pip3_list = 'RUN pip3 install '
-        pip3_list += ' '.join(pip3s)
-    else:
-        pip3_list = ''
-
-    env_list = ''
-    for key, value in envs.items():
-        env_list += f'ENV {key}={value}\n'
-
-    return \
-f'''
-FROM ros:humble
-SHELL ["/bin/bash", "-c"]
-
-{apt_list}
-
-{pip3_list}
-
-{env_list}
-
-WORKDIR /usr/local/lib
-RUN git clone https://github.com/momoiorg-repository/pytwb.git
-WORKDIR /usr/local/lib/pytwb
-RUN source /opt/ros/humble/setup.bash && pip3 install -e .
-
-WORKDIR /root
-COPY ./src {ws_name}
-COPY _.pytwb .pytwb
-RUN echo "source /opt/ros/humble/setup.bash" >> .bashrc
-'''
 
 # global variable
 config = Config.load()

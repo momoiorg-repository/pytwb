@@ -119,38 +119,7 @@ class ComBb:
             print(val)
             return
         for a in args:
-            print(f'{a}= {eval(a)}')
-        
-
-# installation commands
-@command
-class ComPip3:
-    name = 'pip3'
-    num_arg = None
-    help = 'install Python libraries and record them'
-    
-    def invoke(self, api, args):
-        com = ['pip3'] + args
-        subprocess.run(com)
-        if len(args) < 2 or args[0] != 'install':
-            return
-        for t in args[1:]:
-            api.add_pip3(t)
-
-@command
-class ComApt:
-    name = 'apt'
-    num_arg = None
-    help = 'install apt modules and record them'
-    
-    def invoke(self, api, args):
-        com = ['apt'] + args
-        subprocess.run(com)
-        if len(args) < 2 or args[0] != 'install':
-            return
-        for t in args[1:]:
-            if t.startswith('-'): continue
-            api.add_apt(t)
+            print(f'{a}= {eval(a)}')        
 
 @command
 class ComConfig:
@@ -204,7 +173,7 @@ class ComEnv:
     help = 'env key value :: set environment parameter'
     
     def invoke(self, api, args):
-        api.add_env(args[0], args[1])
+        os.environ[args[0]] = args[1]
 
 @command
 class ComParam:
@@ -233,6 +202,15 @@ class ComLog:
             os.environ.pop('ROS_LOG_DIR')
         else:
             os.environ['ROS_LOG_DIR'] = dir
+
+@command
+class ComComLog:
+    name = 'com'
+    num_arg = None
+    help = 'print command log'
+    
+    def invoke(self, api, args):
+        api.print_com_log()
 
 # linux compatible commands
 class CmdLinux(Com):
@@ -282,3 +260,15 @@ class ComGit(CmdLinux):
     name = 'git'
     num_arg = None
     help = 'git command'
+
+@command
+class ComPip3(CmdLinux):
+    name = 'pip3'
+    num_arg = None
+    help = 'install Python libraries and record them'
+
+@command
+class ComApt(CmdLinux):
+    name = 'apt'
+    num_arg = None
+    help = 'install apt modules and record them'
